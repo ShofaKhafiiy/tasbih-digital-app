@@ -17,14 +17,14 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import DhikrSelector from "../components/DhikrSelector";
 import TasbihRing from "../components/TasbihRing";
-import { colors, bgGradient, styles } from "../constants/styles";
+import { bgGradient, colors, styles } from "../constants/styles";
 import { DHIKR_LIST, type Dhikr } from "../data/dhikr";
 
 // Logo aplikasi (aset PNG). Ganti file ini untuk mengganti logo.
 const logoTasbih = require("../../assets/images/logo-tasbih.png");
 
 // Jeda minimal antar ketukan (mencegah hitungan terlewat dobel).
-const TAP_COOLDOWN_MS = 400;
+const TAP_COOLDOWN_MS = 1000;
 
 // Batas target kustom (dipakai saat validasi input).
 const TARGET_MIN = 1;
@@ -267,11 +267,7 @@ export default function Index() {
                     pressed && { opacity: 0.8, transform: [{ scale: 0.95 }] },
                   ]}
                 >
-                  <Ionicons
-                    name="refresh"
-                    size={18}
-                    color={colors.primary}
-                  />
+                  <Ionicons name="refresh" size={18} color={colors.primary} />
                 </Pressable>
               ) : null}
             </View>
