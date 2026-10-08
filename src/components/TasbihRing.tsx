@@ -1,15 +1,13 @@
 import type { ReactNode } from "react";
 import { Pressable, Text, View } from "react-native";
-import { colors, styles } from "../constants/styles";
-import type { Dhikr } from "../data/dhikr";
+import { componentStyles } from "../styles";
+import { colors } from "../constants";
+import type { Dhikr } from "../types/dhikr";
 
-// Jumlah manik pada cincin. Satu putaran penuh = 33 manik.
 const BEAD_COUNT = 33;
 
-// Proporsi geometri manik (relatif terhadap ukuran ring).
-const BEAD_RADIUS_RATIO = 0.365; // radius lingkaran manik
-const BEAD_SIZE_RATIO = 0.057; // diameter tiap manik
-// Proporsi ukuran teks di tengah ring.
+const BEAD_RADIUS_RATIO = 0.365; 
+const BEAD_SIZE_RATIO = 0.057; 
 const ARABIC_FONT_RATIO = 0.1;
 const COUNT_FONT_RATIO = 0.2;
 
@@ -19,26 +17,22 @@ export interface TasbihRingProps {
   onTap: () => void;
 }
 
-/** Cincin tasbih statis: 33 manik tersusun melingkar
- *  dengan angka hitungan 0 di tengah. */
 export default function TasbihRing({ size, dhikr, onTap }: TasbihRingProps) {
   const center = size / 2;
   const radius = size * BEAD_RADIUS_RATIO;
   const beadSize = size * BEAD_SIZE_RATIO;
 
-  // Primitive loop: susun manik di luar JSX (JSX hanya menerima expression),
-  // lalu render array-nya di dalam return.
   const beads: ReactNode[] = [];
   for (let index = 0; index < BEAD_COUNT; index++) {
     const angle = (index * 360) / BEAD_COUNT - 90;
     const radians = (angle * Math.PI) / 180;
-    const isMarker = index === 0; // manik kepala selalu menyala
+    const isMarker = index === 0; 
 
     beads.push(
       <View
         key={index}
         style={[
-          styles.bead,
+          componentStyles.bead,
           {
             width: beadSize,
             height: beadSize,
@@ -63,26 +57,26 @@ export default function TasbihRing({ size, dhikr, onTap }: TasbihRingProps) {
       accessibilityLabel={`Info ${dhikr.name}`}
       accessibilityHint="Satu ketukan menampilkan info bacaan"
       style={({ pressed }) => [
-        styles.ringPressable,
+        componentStyles.ringPressable,
         { width: size, height: size, borderRadius: size / 2 },
         pressed && { transform: [{ scale: 0.97 }] },
       ]}
     >
       {/* Cincin manik */}
-      <View pointerEvents="none" style={[styles.ringBeads, { width: size, height: size }]}>
+      <View pointerEvents="none" style={[componentStyles.ringBeads, { width: size, height: size }]}>
         {beads}
       </View>
 
       {/* Angka hitungan di tengah cincin */}
       <View
         pointerEvents="none"
-        style={[styles.ringCenter, { paddingHorizontal: size * 0.2 }]}
+        style={[componentStyles.ringCenter, { paddingHorizontal: size * 0.2 }]}
       >
         <Text
           numberOfLines={1}
           adjustsFontSizeToFit
           style={[
-            styles.ringDhikrName,
+            componentStyles.ringDhikrName,
             { fontSize: Math.round(size * ARABIC_FONT_RATIO) },
           ]}
         >
@@ -93,14 +87,14 @@ export default function TasbihRing({ size, dhikr, onTap }: TasbihRingProps) {
           adjustsFontSizeToFit
           minimumFontScale={0.6}
           style={[
-            styles.ringCount,
+            componentStyles.ringCount,
             { fontSize: Math.min(Math.round(size * COUNT_FONT_RATIO), 62) },
           ]}
         >
           0
         </Text>
-        <Text style={styles.ringTarget}>/ {dhikr.target}</Text>
-        <Text style={styles.ringStatus}>Ketuk ring untuk info</Text>
+        <Text style={componentStyles.ringTarget}>/ {dhikr.target}</Text>
+        <Text style={componentStyles.ringStatus}>Ketuk ring untuk info</Text>
       </View>
     </Pressable>
   );

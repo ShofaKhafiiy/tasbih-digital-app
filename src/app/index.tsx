@@ -1,60 +1,41 @@
-import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
-import { Alert, Button, Dimensions, Image, Pressable, ScrollView, StatusBar, Text, TextInput, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import DhikrSelector from "../components/DhikrSelector";
+import { Dimensions, ScrollView, View, StyleSheet, Alert } from "react-native";
+import { useState } from "react";
+import { globalStyles } from "../styles";
+import { colors } from "../constants";
+import { DHIKR_LIST } from "../data/dhikr";
+import Header from "../components/ui/Header";
+import StartButton from "../components/ui/StartButton";
+import TargetInputRow from "../components/ui/TargetInputRow";
 import TasbihRing from "../components/TasbihRing";
-import { bgGradient, colors, styles } from "../constants/styles";
-import { DHIKR_LIST, type Dhikr } from "../data/dhikr";
+import DhikrSelector from "../components/DhikrSelector";
 
-// Logo aplikasi (aset PNG). Ganti file ini untuk mengganti logo.
-const logoTasbih = require("../../assets/images/logo-tasbih.png");
-
-// Ukuran layar sekali baca di level module (tanpa hook).
 const { width } = Dimensions.get("window");
-// Diameter cincin: muat di layar dengan ruang napas.
 const RING_SIZE = Math.min(width - 80, 320);
 
-// Batas target kustom (dipakai saat validasi input).
 const TARGET_MIN = 1;
 const TARGET_MAX = 9999;
 
-// Isi input target disimpan di variabel biasa, bukan state
-// (variabel component di-reset tiap render, jadi diletakkan di sini).
-let targetText = "";
+const gradientStyle = StyleSheet.create({
+  bgFill: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: colors.background,
+  },
+});
 
-// ============================================================
-// INDEKS MATERI MODUL 1 (dipakai saat demo / menjawab pertanyaan)
-// - Custom Function : handleRingTap, handleStart,
-//   handleSelectDhikr, handleApplyTarget.
-// - Loop : primitive loop (for + push) di TasbihRing.tsx,
-//   FlatList di DhikrSelector.tsx.
-// - Type & Array of Objects : interface Dhikr + DHIKR_LIST
-//   (data/dhikr.ts) + interface TasbihRingProps.
-// - Inline & External Styles : styles.ts (external) + style
-//   dinamis di komponen ini (inline).
-// - Komponen dasar : View, Text, Image, TextInput, Button,
-//   Pressable, ScrollView, FlatList.
-// - Library : Ionicons (@expo/vector-icons).
-// Catatan: belum ada state (useState) — materi modul berikutnya.
-// ============================================================
 export default function Index() {
-  // Zikir yang tampil (statis — memilih zikir lain butuh state).
-  const activeDhikr: Dhikr = DHIKR_LIST[0];
+  const [activeDhikr, setActiveDhikr] = useState(DHIKR_LIST[0]);
+  const [targetText, setTargetText] = useState("");
 
-  // ── CUSTOM FUNCTIONS (memanggil function bawaan: Alert) ──
   function handleRingTap() {
     Alert.alert(
       activeDhikr.name,
-      `${activeDhikr.description} — target ${activeDhikr.target} kali.`,
+      `${activeDhikr.description} — target ${activeDhikr.target} kali.`
     );
   }
 
-  function handleSelectDhikr(dhikr: Dhikr) {
-    Alert.alert(
-      dhikr.name,
-      `${dhikr.description} — target ${dhikr.target} kali.`,
-    );
+  function handleSelectDhikr(dhikr: typeof activeDhikr) {
+    setActiveDhikr(dhikr);
+    Alert.alert(dhikr.name, `${dhikr.description} — target ${dhikr.target} kali.`);
   }
 
   function handleStart() {
@@ -66,50 +47,26 @@ export default function Index() {
     if (!Number.isInteger(value) || value < TARGET_MIN || value > TARGET_MAX) {
       Alert.alert(
         "Target tidak valid",
-        `Masukkan angka bulat antara ${TARGET_MIN} sampai ${TARGET_MAX}.`,
+        `Masukkan angka bulat antara ${TARGET_MIN} sampai ${TARGET_MAX}.`
       );
       return;
     }
     Alert.alert("Target diatur", `Target baru: ${value} kali.`);
+    setTargetText("");
   }
 
-  // ── TAMPILAN ──────────────────────────────────────────────
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
-      {/* Gradient hangat di belakang layar. */}
-      <LinearGradient
-        colors={bgGradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.bgFill}
-      />
+    <View style={globalStyles.container}>
+      <View style={gradientStyle.bgFill} />
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={globalStyles.scrollContent}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* ── HEADER (logo + judul) ── */}
-        <View style={styles.header}>
-          <Image
-            source={logoTasbih}
-            style={styles.headerLogo}
-            accessibilityLabel="Logo Tasbih Digital"
-          />
-          <Text style={styles.headerTitle}>Tasbih Digital</Text>
-          <Text style={styles.headerSubtitle}>
-            Dekat dengan Allah, setiap hari
-          </Text>
-          {/* Ornamen Islami tipis: garis ─ lambang ─ garis */}
-          <View style={styles.arabesque}>
-            <View style={styles.arabesqueLine} />
-            <Ionicons name="diamond" size={10} color={colors.accent} />
-            <View style={styles.arabesqueLine} />
-          </View>
-        </View>
+        <Header />
 
         {/* ── CINCIN TASBIH ── */}
-        <View style={styles.ringArea}>
+        <View style={globalStyles.ringArea}>
           <TasbihRing
             size={RING_SIZE}
             dhikr={activeDhikr}
@@ -125,39 +82,16 @@ export default function Index() {
         />
 
         {/* ── TOMBOL MULAI ── */}
-        <Pressable
-          onPress={handleStart}
-          accessibilityRole="button"
-          style={({ pressed }) => [
-            styles.primaryButton,
-            pressed && styles.primaryButtonPressed,
-          ]}
-        >
-          <Ionicons name="play" size={18} color={colors.white} />
-          <Text style={styles.primaryButtonText}>Mulai</Text>
-        </Pressable>
+        <StartButton onPress={handleStart} />
 
         {/* ── TARGET KUSTOM (TextInput + Button) ── */}
-        <View style={styles.targetRow}>
-          <Text style={styles.targetLabel}>Target</Text>
-          <TextInput
-            style={styles.targetInput}
-            onChangeText={(text) => {
-              targetText = text;
-            }}
-            keyboardType="number-pad"
-            placeholder={`cth. ${activeDhikr.target}`}
-            placeholderTextColor={colors.muted}
-            maxLength={4}
-            accessibilityLabel="Masukkan target kustom"
-          />
-          <Button
-            title="Atur"
-            color={colors.primary}
-            onPress={handleApplyTarget}
-          />
-        </View>
+        <TargetInputRow
+          targetText={targetText}
+          onChangeText={setTargetText}
+          onApply={handleApplyTarget}
+          placeholder={`cth. ${activeDhikr.target}`}
+        />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }

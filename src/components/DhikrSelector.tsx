@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { FlatList, Pressable, Text, View } from "react-native";
-import { colors, styles } from "../constants/styles";
-import type { Dhikr } from "../data/dhikr";
+import { componentStyles } from "../styles";
+import { colors } from "../constants";
+import type { Dhikr } from "../types/dhikr";
 
 export interface DhikrSelectorProps {
   data: Dhikr[];
@@ -26,7 +27,7 @@ export default function DhikrSelector({
         accessibilityRole="button"
         accessibilityLabel={`Info ${item.name}`}
         style={({ pressed }) => [
-          styles.navCard,
+          componentStyles.navCard,
           active && {
             backgroundColor: item.softColor,
             borderColor: item.color,
@@ -38,31 +39,31 @@ export default function DhikrSelector({
           numberOfLines={1}
           adjustsFontSizeToFit
           minimumFontScale={0.7}
-          style={[styles.navCardName, active && { color: item.color }]}
+          style={[componentStyles.navCardName, active && { color: item.color }]}
         >
           {item.name}
         </Text>
         {active ? (
           <View
             style={[
-              styles.navCardTargetPill,
+              componentStyles.navCardTargetPill,
               { backgroundColor: item.color },
             ]}
           >
-            <Text style={styles.navCardTargetPillText}>
+            <Text style={componentStyles.navCardTargetPillText}>
               {item.target} kali
             </Text>
           </View>
         ) : (
-          <Text style={styles.navCardTarget}>{item.target} kali</Text>
+          <Text style={componentStyles.navCardTarget}>{item.target} kali</Text>
         )}
       </Pressable>
     );
   }
 
   return (
-    <View style={styles.navbarRow}>
-      <View style={styles.navArrow}>
+    <View style={componentStyles.navbarRow}>
+      <View style={componentStyles.navArrow}>
         <Ionicons name="chevron-back" size={22} color={colors.primary} />
       </View>
 
@@ -74,7 +75,7 @@ export default function DhikrSelector({
         showsHorizontalScrollIndicator={false}
       />
 
-      <View style={styles.navArrow}>
+      <View style={componentStyles.navArrow}>
         <Ionicons name="chevron-forward" size={22} color={colors.primary} />
       </View>
     </View>
