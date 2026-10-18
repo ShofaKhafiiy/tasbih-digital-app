@@ -1,7 +1,7 @@
 import { Stack } from "expo-router";
-import { colors } from "../constants/styles";
+import { colors } from "../constants";
 
-/** Navigator utama. Warna latar layar disesuaikan tema di styles.ts. */
+/** Navigator utama. Warna latar layar disesuaikan tema di constants. */
 export default function RootLayout() {
   return (
     <Stack

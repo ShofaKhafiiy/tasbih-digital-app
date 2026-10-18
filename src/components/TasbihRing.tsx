@@ -1,183 +1,100 @@
-import { useEffect, useState } from "react";
-import { Animated, Easing, Pressable, Text, View } from "react-native";
-import { colors, styles } from "../constants/styles";
+import type { ReactNode } from "react";
+import { Pressable, Text, View } from "react-native";
+import { componentStyles } from "../styles";
+import { colors } from "../constants";
+import type { Dhikr } from "../types/dhikr";
 
-// Jumlah manik pada cincin. Satu putaran penuh = 33 manik.
 const BEAD_COUNT = 33;
 
-// Proporsi geometri manik (relatif terhadap ukuran ring).
-const BEAD_RADIUS_RATIO = 0.365; // radius lingkaran manik
-const BEAD_SIZE_RATIO = 0.057; // diameter tiap manik
-// Proporsi ukuran teks di tengah ring.
+const BEAD_RADIUS_RATIO = 0.365; 
+const BEAD_SIZE_RATIO = 0.057; 
 const ARABIC_FONT_RATIO = 0.1;
 const COUNT_FONT_RATIO = 0.2;
 
 export interface TasbihRingProps {
   size: number;
-  count: number;
-  target: number;
-  accentColor: string;
-  dhikrName: string;
-  arabic: string;
-  started: boolean;
-  disabled: boolean;
-  completed: boolean;
+  dhikr: Dhikr;
   onTap: () => void;
 }
 
-/** Cincin tasbih: manik berputar saat diketuk dan manik
- *  menyala mengikuti progres hitungan (gaya LED digital). */
-export default function TasbihRing({
-  size,
-  count,
-  target,
-  accentColor,
-  dhikrName,
-  arabic,
-  started,
-  disabled,
-  completed,
-  onTap,
-}: TasbihRingProps) {
-  // Nilai animasi putaran. Bukan ref, agar aman dibaca saat render.
-  const [rotation] = useState(() => new Animated.Value(0));
-  // Skala angka hitungan saat bertambah (micro-interaction "pop").
-  const [countScale] = useState(() => new Animated.Value(1));
-
-  // Setiap hitungan berubah, putar cincin selebar satu manik.
-  useEffect(() => {
-    Animated.timing(rotation, {
-      toValue: -(count * 360) / BEAD_COUNT,
-      duration: 480,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    }).start();
-  }, [count, rotation]);
-
-  // Angka melonjak kecil tiap ketukan (skip saat hitungan direset ke 0).
-  useEffect(() => {
-    if (count === 0) return;
-    Animated.sequence([
-      Animated.timing(countScale, {
-        toValue: 1.12,
-        duration: 90,
-        useNativeDriver: true,
-      }),
-      Animated.timing(countScale, {
-        toValue: 1,
-        duration: 140,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [count, countScale]);
-
-  const rotateDegrees = rotation.interpolate({
-    inputRange: [-10000000, 0, 10000000],
-    outputRange: ["-10000000deg", "0deg", "10000000deg"],
-  });
-
+export default function TasbihRing({ size, dhikr, onTap }: TasbihRingProps) {
   const center = size / 2;
   const radius = size * BEAD_RADIUS_RATIO;
   const beadSize = size * BEAD_SIZE_RATIO;
-  // Manik menyala mengikuti progres (manik ke-0 selalu copper = kepala tasbih).
-  const litBeads =
-    target > 0 ? Math.ceil((count / target) * (BEAD_COUNT - 1)) : 0;
+
+  const beads: ReactNode[] = [];
+  for (let index = 0; index < BEAD_COUNT; index++) {
+    const angle = (index * 360) / BEAD_COUNT - 90;
+    const radians = (angle * Math.PI) / 180;
+    const isMarker = index === 0; 
+
+    beads.push(
+      <View
+        key={index}
+        style={[
+          componentStyles.bead,
+          {
+            width: beadSize,
+            height: beadSize,
+            borderRadius: beadSize / 2,
+            left: center + radius * Math.cos(radians) - beadSize / 2,
+            top: center + radius * Math.sin(radians) - beadSize / 2,
+            backgroundColor: isMarker ? colors.accent : colors.beadUnlit,
+            shadowColor: isMarker ? colors.accent : "#2B231C",
+            shadowOpacity: isMarker ? 0.6 : 0.18,
+            shadowRadius: isMarker ? 6 : 2,
+            elevation: isMarker ? 4 : 1,
+          },
+        ]}
+      />,
+    );
+  }
 
   return (
     <Pressable
       onPress={onTap}
-      disabled={disabled}
       accessibilityRole="button"
-      accessibilityLabel={`Tambah hitungan ${dhikrName}`}
-      accessibilityHint="Satu ketukan menambah satu hitungan"
+      accessibilityLabel={`Info ${dhikr.name}`}
+      accessibilityHint="Satu ketukan menampilkan info bacaan"
       style={({ pressed }) => [
-        styles.ringPressable,
+        componentStyles.ringPressable,
         { width: size, height: size, borderRadius: size / 2 },
-        pressed && !disabled ? { transform: [{ scale: 0.97 }] } : null,
+        pressed && { transform: [{ scale: 0.97 }] },
       ]}
     >
-      {/* Cincin manik yang berputar */}
-      <Animated.View
-        pointerEvents="none"
-        style={[
-          styles.ringRotator,
-          { width: size, height: size, transform: [{ rotate: rotateDegrees }] },
-        ]}
-      >
-        {Array.from({ length: BEAD_COUNT }, (_, index) => {
-          const angle = (index * 360) / BEAD_COUNT - 90;
-          const radians = (angle * Math.PI) / 180;
-          const isMarker = index === 0;
-          const isLit = isMarker || (index > 0 && index <= litBeads);
-
-          return (
-            <View
-              key={index}
-              style={[
-                styles.bead,
-                {
-                  width: beadSize,
-                  height: beadSize,
-                  borderRadius: beadSize / 2,
-                  left: center + radius * Math.cos(radians) - beadSize / 2,
-                  top: center + radius * Math.sin(radians) - beadSize / 2,
-                  backgroundColor: isMarker
-                    ? colors.accent
-                    : isLit
-                      ? accentColor
-                      : colors.beadUnlit,
-                  borderColor: isLit ? "#F3E7D2" : colors.beadUnlitBorder,
-                  shadowColor: isLit ? colors.accent : "#2B231C",
-                  shadowOpacity: isLit ? 0.6 : 0.18,
-                  shadowRadius: isLit ? 6 : 2,
-                  elevation: isLit ? 4 : 1,
-                },
-              ]}
-            />
-          );
-        })}
-      </Animated.View>
+      {/* Cincin manik */}
+      <View pointerEvents="none" style={[componentStyles.ringBeads, { width: size, height: size }]}>
+        {beads}
+      </View>
 
       {/* Angka hitungan di tengah cincin */}
       <View
         pointerEvents="none"
-        style={[styles.ringCenter, { paddingHorizontal: size * 0.2 }]}
+        style={[componentStyles.ringCenter, { paddingHorizontal: size * 0.2 }]}
       >
         <Text
           numberOfLines={1}
           adjustsFontSizeToFit
           style={[
-            styles.ringDhikrName,
+            componentStyles.ringDhikrName,
             { fontSize: Math.round(size * ARABIC_FONT_RATIO) },
           ]}
         >
-          {arabic}
+          {dhikr.arabic}
         </Text>
-        <Animated.View style={{ transform: [{ scale: countScale }] }}>
-          <Text
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.6}
-            style={[
-              styles.ringCount,
-              { fontSize: Math.min(Math.round(size * COUNT_FONT_RATIO), 62) },
-            ]}
-          >
-            {count}
-          </Text>
-        </Animated.View>
-        <Text style={styles.ringTarget}>/ {target}</Text>
         <Text
-          style={[styles.ringStatus, completed && { color: colors.accent }]}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.6}
+          style={[
+            componentStyles.ringCount,
+            { fontSize: Math.min(Math.round(size * COUNT_FONT_RATIO), 62) },
+          ]}
         >
-          {completed
-            ? "Target tercapai"
-            : !started
-              ? "Tekan Mulai dulu"
-              : disabled
-                ? "Sebentar lagi..."
-                : "Ketuk untuk menghitung"}
+          0
         </Text>
+        <Text style={componentStyles.ringTarget}>/ {dhikr.target}</Text>
+        <Text style={componentStyles.ringStatus}>Ketuk ring untuk info</Text>
       </View>
     </Pressable>
   );
