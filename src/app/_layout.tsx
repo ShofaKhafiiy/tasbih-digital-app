@@ -9,6 +9,10 @@ export default function RootLayout() {
         headerShown: false,
         contentStyle: { backgroundColor: colors.background },
       }}
-    />
+    >
+      <Stack.Screen name="index" options={{ title: "Tasbih Digital" }} />
+      <Stack.Screen name="counting" options={{ title: "Tasbih Berjalan" }} />
+      <Stack.Screen name="recap" options={{ title: "Hasil Tasbih" }} />
+    </Stack>
   );
 }
