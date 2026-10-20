@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 import { Pressable, Text, View } from "react-native";
-import { colors } from "../constants";
-import { componentStyles } from "../styles";
-import type { Dhikr } from "../types/dhikr";
+import { colors } from "@/constants";
+import { componentStyles } from "@/styles";
+import type { Dhikr } from "@/types/dhikr";
 
 const BEAD_COUNT = 33;
 

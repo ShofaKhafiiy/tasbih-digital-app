@@ -1,6 +1,6 @@
 import { Button, Text, TextInput, View } from "react-native";
-import { globalStyles } from "../../styles";
-import { colors } from "../../constants";
+import { colors } from "@/constants";
+import { globalStyles } from "@/styles";
 
 interface TargetInputRowProps {
   targetText: string;

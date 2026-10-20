@@ -1,14 +1,14 @@
 import { Dimensions, ScrollView, View, StyleSheet, Alert } from "react-native";
 import { useState } from "react";
 import { router } from "expo-router";
-import { globalStyles } from "../styles";
-import { colors } from "../constants";
-import { DHIKR_LIST } from "../data/dhikr";
-import Header from "../components/ui/Header";
-import StartButton from "../components/ui/StartButton";
-import TargetInputRow from "../components/ui/TargetInputRow";
-import TasbihRing from "../components/TasbihRing";
-import DhikrSelector from "../components/DhikrSelector";
+import { globalStyles } from "@/styles";
+import { colors } from "@/constants";
+import { DHIKR_LIST } from "@/data/dhikr";
+import Header from "@/components/ui/Header";
+import StartButton from "@/components/ui/StartButton";
+import TargetInputRow from "@/components/ui/TargetInputRow";
+import TasbihRing from "@/components/TasbihRing";
+import DhikrSelector from "@/components/DhikrSelector";
 
 const { width } = Dimensions.get("window");
 const RING_SIZE = Math.min(width - 80, 320);

@@ -1,7 +1,7 @@
-import { Pressable, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { globalStyles } from "../../styles";
-import { colors } from "../../constants";
+import { Pressable, Text } from "react-native";
+import { colors } from "@/constants";
+import { globalStyles } from "@/styles";
 
 interface StartButtonProps {
   onPress: () => void;
@@ -9,7 +9,11 @@ interface StartButtonProps {
   disabled?: boolean;
 }
 
-export default function StartButton({ onPress, label = "Mulai", disabled = false }: StartButtonProps) {
+export default function StartButton({
+  onPress,
+  label = "Mulai",
+  disabled = false,
+}: StartButtonProps) {
   return (
     <Pressable
       onPress={onPress}

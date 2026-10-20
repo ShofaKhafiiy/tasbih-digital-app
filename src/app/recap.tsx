@@ -1,8 +1,8 @@
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
-import { globalStyles, componentStyles } from "../styles";
-import { DHIKR_LIST } from "../data/dhikr";
-import Header from "../components/ui/Header";
+import { globalStyles, componentStyles } from "@/styles";
+import { DHIKR_LIST } from "@/data/dhikr";
+import Header from "@/components/ui/Header";
 
 export default function Recap() {
   const params = useLocalSearchParams<{ id?: string; target?: string; count?: string }>();

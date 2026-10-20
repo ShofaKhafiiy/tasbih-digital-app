@@ -1,8 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { FlatList, Pressable, Text, View } from "react-native";
-import { componentStyles } from "../styles";
-import { colors } from "../constants";
-import type { Dhikr } from "../types/dhikr";
+import { colors } from "@/constants";
+import { componentStyles } from "@/styles";
+import type { Dhikr } from "@/types/dhikr";
 
 export interface DhikrSelectorProps {
   data: Dhikr[];

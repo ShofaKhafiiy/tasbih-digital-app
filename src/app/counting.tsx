@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, Text, View, Alert, Dimensions } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
-import { globalStyles } from "../styles";
-import { DHIKR_LIST } from "../data/dhikr";
-import type { Dhikr } from "../types/dhikr";
-import Header from "../components/ui/Header";
-import TasbihRing from "../components/TasbihRing";
+import { globalStyles } from "@/styles";
+import { DHIKR_LIST } from "@/data/dhikr";
+import type { Dhikr } from "@/types/dhikr";
+import Header from "@/components/ui/Header";
+import TasbihRing from "@/components/TasbihRing";
 
 const { width } = Dimensions.get("window");
 const RING_SIZE = Math.min(width - 80, 320);
