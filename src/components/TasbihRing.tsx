@@ -28,11 +28,20 @@ export default function TasbihRing({
   const radius = size * BEAD_RADIUS_RATIO;
   const beadSize = size * BEAD_SIZE_RATIO;
 
+  // Berapa manik yang "terisi" berdasarkan progres terhadap target.
+  const progress = dhikr.target > 0 ? (count % dhikr.target) / dhikr.target : 0;
+  const litCount = Math.round(progress * BEAD_COUNT);
+
   const beads: ReactNode[] = [];
   for (let index = 0; index < BEAD_COUNT; index++) {
     const angle = (index * 360) / BEAD_COUNT - 90;
     const radians = (angle * Math.PI) / 180;
     const isMarker = index === 0;
+    const isLit = count > 0 && index <= litCount;
+
+    let beadColor: string = colors.beadUnlit;
+    if (isMarker) beadColor = colors.accent;
+    else if (isLit) beadColor = dhikr.color;
 
     beads.push(
       <View
@@ -45,9 +54,9 @@ export default function TasbihRing({
             borderRadius: beadSize / 2,
             left: center + radius * Math.cos(radians) - beadSize / 2,
             top: center + radius * Math.sin(radians) - beadSize / 2,
-            backgroundColor: isMarker ? colors.accent : colors.beadUnlit,
-            shadowColor: isMarker ? colors.accent : "#2B231C",
-            shadowOpacity: isMarker ? 0.6 : 0.18,
+            backgroundColor: beadColor,
+            shadowColor: isMarker || isLit ? beadColor : "#2B231C",
+            shadowOpacity: isMarker ? 0.6 : isLit ? 0.35 : 0.18,
             shadowRadius: isMarker ? 6 : 2,
             elevation: isMarker ? 4 : 1,
           },
@@ -61,7 +70,7 @@ export default function TasbihRing({
       onPress={onTap}
       accessibilityRole="button"
       accessibilityLabel={`Info ${dhikr.name}`}
-      accessibilityHint="Satu ketukan menampilkan info bacaan"
+      accessibilityHint="Satu ketukan untuk menghitung"
       style={({ pressed }) => [
         componentStyles.ringPressable,
         { width: size, height: size, borderRadius: size / 2 },
@@ -103,7 +112,7 @@ export default function TasbihRing({
           {count}
         </Text>
         <Text style={componentStyles.ringTarget}>/ {dhikr.target}</Text>
-        <Text style={componentStyles.ringStatus}>Ketuk ring untuk info</Text>
+        <Text style={componentStyles.ringStatus}>Ketuk ring untuk menghitung</Text>
       </View>
     </Pressable>
   );

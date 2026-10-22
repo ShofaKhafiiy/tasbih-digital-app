@@ -18,8 +18,3 @@ export const colors = {
   beadUnlit: "#55432F", // manik (espresso)
   white: "#FFFFFF",
 } as const;
-
-export type ColorKey = keyof typeof colors;
-
-// Gradient lembut untuk latar — kartu glass mengambang di atasnya.
-export const bgGradient = ["#F3EDE3", "#E6EEE8", "#E2D7C5"] as const;

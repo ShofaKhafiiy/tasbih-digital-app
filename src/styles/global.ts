@@ -62,6 +62,24 @@ export const globalStyles = StyleSheet.create({
     backgroundColor: colors.hairline,
   },
 
+  // ── HEADER KOMPAK (layar immersive) ──
+  headerCompact: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  headerLogoCompact: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+  },
+  headerTitleCompact: {
+    fontSize: fontSize.xl,
+    fontWeight: fontWeight.bold,
+    color: colors.ink,
+  },
+
   // ── AREA CINCIN (di tengah sisa ruang) ──
   ringArea: {
     flex: 1,

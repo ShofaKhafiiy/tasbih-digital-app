@@ -20,15 +20,3 @@ export const fontWeight = {
   bold: "700" as const,
   extrabold: "800" as const,
 } as const;
-
-export const lineHeight = {
-  tight: 1.2,
-  normal: 1.5,
-  relaxed: 1.8,
-} as const;
-
-export const letterSpacing = {
-  tight: 0.3,
-  normal: 0,
-  wide: 0.6,
-} as const;

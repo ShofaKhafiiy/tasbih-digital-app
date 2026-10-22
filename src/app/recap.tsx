@@ -9,6 +9,7 @@ export default function Recap() {
   const dhikr = DHIKR_LIST.find((d) => d.id === params.id) ?? DHIKR_LIST[0];
   const target = Number(params.target) || dhikr.target;
   const count = Number(params.count) || 0;
+  const done = count >= target;
 
   return (
     <ScrollView
@@ -18,18 +19,15 @@ export default function Recap() {
       <Header subtitle="Ringkasan Sesi" />
       <View style={globalStyles.ringArea}>
         <Text style={componentStyles.ringDhikrName}>{dhikr.arabic}</Text>
-        <Text style={componentStyles.ringCount}>{dhikr.name}</Text>
-        <Text style={componentStyles.ringTarget}>Target: {target} kali</Text>
+        <Text style={componentStyles.ringCount}>{count}</Text>
+        <Text style={componentStyles.ringTarget}>dari {target} kali</Text>
         <Text style={[componentStyles.ringStatus, { marginTop: 12 }]}>
-          Hitungan: {count} kali
-        </Text>
-        <Text style={[componentStyles.ringStatus, { marginTop: 8 }]}>
-          {count >= target ? "Tercapai" : "Belum mencapai target"}
+          {dhikr.name} — {done ? "Target tercapai" : "Belum mencapai target"}
         </Text>
       </View>
       <Pressable
         onPress={() => router.replace("/")}
-        style={[globalStyles.primaryButton, { marginTop: 20 }]}
+        style={globalStyles.primaryButton}
       >
         <Text style={globalStyles.primaryButtonText}>Kembali ke Beranda</Text>
       </Pressable>

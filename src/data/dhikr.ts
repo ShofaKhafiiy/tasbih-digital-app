@@ -43,5 +43,3 @@ export const DHIKR_LIST: Dhikr[] = [
     softColor: "#F0E4F2",
   },
 ];
-
-export { type Dhikr } from "@/types/dhikr";

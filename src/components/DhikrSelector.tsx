@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { FlatList, Pressable, Text, View } from "react-native";
+import { router } from "expo-router";
 import { colors } from "@/constants";
 import { componentStyles } from "@/styles";
 import type { Dhikr } from "@/types/dhikr";
@@ -10,13 +11,15 @@ export interface DhikrSelectorProps {
   onSelect: (dhikr: Dhikr) => void;
 }
 
-/** Navbar dzikir: kartu bacaan bisa digeser (FlatList horizontal).
- *  Panah ‹ › hanya hiasan — memindah bacaan butuh state (modul berikutnya). */
 export default function DhikrSelector({
   data,
   selectedId,
   onSelect,
 }: DhikrSelectorProps) {
+  function openDetail(dhikr: Dhikr) {
+    router.push(`/dzikir/${dhikr.id}`);
+  }
+
   // Satu item = satu kartu bacaan.
   function renderDhikrItem({ item }: { item: Dhikr }) {
     const active = item.id === selectedId;
@@ -24,8 +27,10 @@ export default function DhikrSelector({
     return (
       <Pressable
         onPress={() => onSelect(item)}
+        onLongPress={() => openDetail(item)}
         accessibilityRole="button"
         accessibilityLabel={`Info ${item.name}`}
+        accessibilityHint="Ketuk untuk memilih, tahan untuk melihat detail"
         style={({ pressed }) => [
           componentStyles.navCard,
           active && {
@@ -42,6 +47,12 @@ export default function DhikrSelector({
           style={[componentStyles.navCardName, active && { color: item.color }]}
         >
           {item.name}
+        </Text>
+        <Text
+          numberOfLines={1}
+          style={[componentStyles.navCardTarget, active && { color: item.color }]}
+        >
+          {item.description}
         </Text>
         {active ? (
           <View

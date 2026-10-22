@@ -1,19 +1,26 @@
 import { useEffect, useRef, useState } from "react";
-import { Pressable, ScrollView, Text, View, Alert, Dimensions } from "react-native";
+import { Pressable, View, Text, Dimensions } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
-import { globalStyles } from "@/styles";
+import * as Haptics from "expo-haptics";
+import { globalStyles, componentStyles } from "@/styles";
 import { DHIKR_LIST } from "@/data/dhikr";
 import type { Dhikr } from "@/types/dhikr";
+import { useSessions } from "@/context/SessionsContext";
+import { useSettings } from "@/context/SettingsContext";
+import { useTapCooldown } from "@/hooks/useTapCooldown";
 import Header from "@/components/ui/Header";
 import TasbihRing from "@/components/TasbihRing";
 
 const { width } = Dimensions.get("window");
-const RING_SIZE = Math.min(width - 80, 320);
+const RING_SIZE = Math.min(width - 60, 340);
 const TARGET_MIN = 1;
 const TARGET_MAX = 9999;
 
 export default function Counting() {
   const params = useLocalSearchParams<{ id?: string; target?: string }>();
+  const { addSession } = useSessions();
+  const { hapticsEnabled } = useSettings();
+  const canTap = useTapCooldown();
 
   const [activeDhikr] = useState<Dhikr>(() => {
     const found = DHIKR_LIST.find((d) => d.id === params.id);
@@ -28,55 +35,113 @@ export default function Counting() {
 
   const [count, setCount] = useState(0);
   const completedRef = useRef(false);
+  const startedAtRef = useRef(0);
+  const completed = count >= effectiveTarget && effectiveTarget > 0;
 
-  // useEffect: dipicu saat count mencapai target (useState + useEffect)
+  useEffect(() => {
+    startedAtRef.current = Date.now();
+  }, []);
+
   useEffect(() => {
     if (completedRef.current) return;
     if (effectiveTarget <= 0 || count < effectiveTarget) return;
 
     completedRef.current = true;
-    Alert.alert(
-      "Selesai",
-      `Target ${effectiveTarget} kali untuk ${activeDhikr.name} tercapai.`,
-      [
-        {
-          text: "Lihat Hasil",
-          onPress: () =>
-            router.replace({
-              pathname: "/recap",
-              params: {
-                id: activeDhikr.id,
-                target: String(effectiveTarget),
-                count: String(count),
-              },
-            }),
-        },
-        { text: "Kembali", onPress: () => router.replace("/") },
-      ],
-      { cancelable: false },
-    );
-  }, [count, effectiveTarget, activeDhikr]);
+
+    addSession({
+      id: `${activeDhikr.id}-${Date.now()}`,
+      dhikrId: activeDhikr.id,
+      count,
+      target: effectiveTarget,
+      startedAt: startedAtRef.current,
+      finishedAt: Date.now(),
+    });
+
+    if (hapticsEnabled) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
+  }, [count, effectiveTarget, activeDhikr, addSession, hapticsEnabled]);
 
   function handleRingTap() {
     if (completedRef.current) return;
+    if (!canTap()) return;
+    if (hapticsEnabled) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
     setCount((c) => c + 1);
   }
 
+  function handleViewResult() {
+    router.replace({
+      pathname: "/recap",
+      params: {
+        id: activeDhikr.id,
+        target: String(effectiveTarget),
+        count: String(count),
+      },
+    });
+  }
+
+  function handleCloseCompletion() {
+    router.replace("/");
+  }
+
+  function handleReset() {
+    completedRef.current = false;
+    setCount(0);
+  }
+
   return (
-    <ScrollView
-      contentContainerStyle={globalStyles.scrollContent}
-      showsVerticalScrollIndicator={false}
-    >
-      <Header subtitle={`Target: ${effectiveTarget} kali`} />
-      <View style={globalStyles.ringArea}>
-        <TasbihRing size={RING_SIZE} dhikr={activeDhikr} onTap={handleRingTap} count={count} />
+    <View style={globalStyles.container}>
+      {completed && (
+        <View style={componentStyles.completionOverlay}>
+          <View style={componentStyles.completionCard}>
+            <Text style={componentStyles.completionTitle}>Target Tercapai</Text>
+            <Text style={componentStyles.completionText}>
+              {effectiveTarget} kali {activeDhikr.name} selesai.
+            </Text>
+            <View style={componentStyles.completionButtonRow}>
+              <Pressable
+                onPress={handleCloseCompletion}
+                style={componentStyles.completionGhostButton}
+              >
+                <Text style={componentStyles.completionGhostText}>Kembali</Text>
+              </Pressable>
+              <Pressable
+                onPress={handleViewResult}
+                style={[globalStyles.primaryButton, { flex: 1, marginTop: 0 }]}
+              >
+                <Text style={globalStyles.primaryButtonText}>Lihat Hasil</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      )}
+
+      <View style={globalStyles.scrollContent}>
+        <Header compact subtitle={activeDhikr.name} />
+
+        <View style={globalStyles.ringArea}>
+          <TasbihRing
+            size={RING_SIZE}
+            dhikr={activeDhikr}
+            onTap={handleRingTap}
+            count={count}
+          />
+          <Text style={componentStyles.ringStatus}>
+            Target {effectiveTarget} kali
+          </Text>
+        </View>
+
+        <View style={componentStyles.countingActions}>
+          <Pressable onPress={handleReset} style={componentStyles.countingGhostButton}>
+            <Text style={componentStyles.countingGhostText}>Reset</Text>
+          </Pressable>
+          <Pressable onPress={() => router.back()} style={globalStyles.primaryButton}>
+            <Text style={globalStyles.primaryButtonText}>Selesai</Text>
+          </Pressable>
+        </View>
       </View>
-      <Pressable
-        onPress={() => router.back()}
-        style={[globalStyles.primaryButton, { marginTop: 16 }]}
-      >
-        <Text style={globalStyles.primaryButtonText}>Kembali</Text>
-      </Pressable>
-    </ScrollView>
+    </View>
   );
 }
