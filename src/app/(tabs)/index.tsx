@@ -1,13 +1,14 @@
 import { Dimensions, ScrollView, View, StyleSheet, Alert } from "react-native";
 import { useState } from "react";
-import { globalStyles } from "../styles";
-import { colors } from "../constants";
-import { DHIKR_LIST } from "../data/dhikr";
-import Header from "../components/ui/Header";
-import StartButton from "../components/ui/StartButton";
-import TargetInputRow from "../components/ui/TargetInputRow";
-import TasbihRing from "../components/TasbihRing";
-import DhikrSelector from "../components/DhikrSelector";
+import { router } from "expo-router";
+import { globalStyles } from "@/styles";
+import { colors } from "@/constants";
+import { DHIKR_LIST } from "@/data/dhikr";
+import Header from "@/components/ui/Header";
+import StartButton from "@/components/ui/StartButton";
+import TargetInputRow from "@/components/ui/TargetInputRow";
+import TasbihRing from "@/components/TasbihRing";
+import DhikrSelector from "@/components/DhikrSelector";
 
 const { width } = Dimensions.get("window");
 const RING_SIZE = Math.min(width - 80, 320);
@@ -39,7 +40,20 @@ export default function Index() {
   }
 
   function handleStart() {
-    Alert.alert("Mulai", `Bacaan dimulai: ${activeDhikr.name}.`);
+    const value = Number(targetText);
+    const hasValidCustom =
+      targetText.trim() !== "" &&
+      Number.isInteger(value) &&
+      value >= TARGET_MIN &&
+      value <= TARGET_MAX;
+
+    router.push({
+      pathname: "/counting",
+      params: {
+        id: activeDhikr.id,
+        ...(hasValidCustom ? { target: String(value) } : {}),
+      },
+    });
   }
 
   function handleApplyTarget() {
@@ -71,6 +85,7 @@ export default function Index() {
             size={RING_SIZE}
             dhikr={activeDhikr}
             onTap={handleRingTap}
+            count={0}
           />
         </View>
 

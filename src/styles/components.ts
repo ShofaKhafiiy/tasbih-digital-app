@@ -1,6 +1,6 @@
 import { StyleSheet } from "react-native";
-import { colors, spacing, borderRadius, componentSizes } from "../constants";
-import { fontSize, fontWeight } from "../constants/typography";
+import { borderRadius, colors, componentSizes, spacing } from "@/constants";
+import { fontSize, fontWeight } from "@/constants/typography";
 
 // ============================================================
 // STYLE KOMPONEN (TasbihRing, DhikrSelector, dll)

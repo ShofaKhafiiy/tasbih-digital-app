@@ -1,7 +1,7 @@
-import { Image, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { globalStyles } from "../../styles";
-import { colors } from "../../constants";
+import { Image, Text, View } from "react-native";
+import { colors } from "@/constants";
+import { globalStyles } from "@/styles";
 
 const logoTasbih = require("../../../assets/images/logo-tasbih.png");
 
@@ -9,7 +9,9 @@ interface HeaderProps {
   subtitle?: string;
 }
 
-export default function Header({ subtitle = "Dekat dengan Allah, setiap hari" }: HeaderProps) {
+export default function Header({
+  subtitle = "Dekat dengan Allah, setiap hari",
+}: HeaderProps) {
   return (
     <View style={globalStyles.header}>
       <Image

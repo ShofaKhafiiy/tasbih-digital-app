@@ -1,13 +1,13 @@
 import type { ReactNode } from "react";
 import { Pressable, Text, View } from "react-native";
-import { componentStyles } from "../styles";
-import { colors } from "../constants";
-import type { Dhikr } from "../types/dhikr";
+import { colors } from "@/constants";
+import { componentStyles } from "@/styles";
+import type { Dhikr } from "@/types/dhikr";
 
 const BEAD_COUNT = 33;
 
-const BEAD_RADIUS_RATIO = 0.365; 
-const BEAD_SIZE_RATIO = 0.057; 
+const BEAD_RADIUS_RATIO = 0.365;
+const BEAD_SIZE_RATIO = 0.057;
 const ARABIC_FONT_RATIO = 0.1;
 const COUNT_FONT_RATIO = 0.2;
 
@@ -15,9 +15,15 @@ export interface TasbihRingProps {
   size: number;
   dhikr: Dhikr;
   onTap: () => void;
+  count: number;
 }
 
-export default function TasbihRing({ size, dhikr, onTap }: TasbihRingProps) {
+export default function TasbihRing({
+  size,
+  dhikr,
+  onTap,
+  count,
+}: TasbihRingProps) {
   const center = size / 2;
   const radius = size * BEAD_RADIUS_RATIO;
   const beadSize = size * BEAD_SIZE_RATIO;
@@ -26,7 +32,7 @@ export default function TasbihRing({ size, dhikr, onTap }: TasbihRingProps) {
   for (let index = 0; index < BEAD_COUNT; index++) {
     const angle = (index * 360) / BEAD_COUNT - 90;
     const radians = (angle * Math.PI) / 180;
-    const isMarker = index === 0; 
+    const isMarker = index === 0;
 
     beads.push(
       <View
@@ -63,7 +69,10 @@ export default function TasbihRing({ size, dhikr, onTap }: TasbihRingProps) {
       ]}
     >
       {/* Cincin manik */}
-      <View pointerEvents="none" style={[componentStyles.ringBeads, { width: size, height: size }]}>
+      <View
+        pointerEvents="none"
+        style={[componentStyles.ringBeads, { width: size, height: size }]}
+      >
         {beads}
       </View>
 
@@ -91,7 +100,7 @@ export default function TasbihRing({ size, dhikr, onTap }: TasbihRingProps) {
             { fontSize: Math.min(Math.round(size * COUNT_FONT_RATIO), 62) },
           ]}
         >
-          0
+          {count}
         </Text>
         <Text style={componentStyles.ringTarget}>/ {dhikr.target}</Text>
         <Text style={componentStyles.ringStatus}>Ketuk ring untuk info</Text>

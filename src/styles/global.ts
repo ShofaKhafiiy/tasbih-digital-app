@@ -1,6 +1,12 @@
 import { StyleSheet } from "react-native";
-import { colors, spacing, borderRadius, componentSizes, screenPadding } from "../constants";
-import { fontSize, fontWeight } from "../constants/typography";
+import {
+  borderRadius,
+  colors,
+  componentSizes,
+  screenPadding,
+  spacing,
+} from "@/constants";
+import { fontSize, fontWeight } from "@/constants/typography";
 
 // ============================================================
 // STYLE GLOBAL (layout, container, scroll, header)
