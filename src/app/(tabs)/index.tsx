@@ -1,18 +1,25 @@
-import { Dimensions, ScrollView, View, StyleSheet, Pressable, Text } from "react-native";
-import { useMemo, useState } from "react";
-import { router, Link } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { globalStyles, componentStyles } from "@/styles";
-import { colors } from "@/constants";
-import { DHIKR_LIST } from "@/data/dhikr";
-import type { Dhikr } from "@/types/dhikr";
-import { useSessions } from "@/context/SessionsContext";
+import DhikrSelector from "@/components/DhikrSelector";
+import TasbihRing from "@/components/TasbihRing";
 import Header from "@/components/ui/Header";
+import InfoBanner from "@/components/ui/InfoBanner";
 import StartButton from "@/components/ui/StartButton";
 import TargetInputRow from "@/components/ui/TargetInputRow";
-import TasbihRing from "@/components/TasbihRing";
-import DhikrSelector from "@/components/DhikrSelector";
-import InfoBanner from "@/components/ui/InfoBanner";
+import { colors } from "@/constants";
+import { useSessions } from "@/context/SessionsContext";
+import { DHIKR_LIST } from "@/data/dhikr";
+import { componentStyles, globalStyles } from "@/styles";
+import type { Dhikr } from "@/types/dhikr";
+import { Ionicons } from "@expo/vector-icons";
+import { Link, router } from "expo-router";
+import { useMemo, useState } from "react";
+import {
+  Dimensions,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 const { width } = Dimensions.get("window");
 const RING_SIZE = Math.min(width - 80, 320);
@@ -96,7 +103,11 @@ export default function Index() {
       });
       return;
     }
-    setBanner({ title: "Target diatur", message: `Target baru: ${value} kali.`, tone: "success" });
+    setBanner({
+      title: "Target diatur",
+      message: `Target baru: ${value} kali.`,
+      tone: "success",
+    });
     setTargetText("");
   }
 
@@ -131,13 +142,21 @@ export default function Index() {
         <View style={componentStyles.dashboardRow}>
           <View style={componentStyles.dashboardCard}>
             <Ionicons name="repeat" size={18} color={colors.primary} />
-            <Text style={componentStyles.dashboardValue}>{todayStats.todayCount}</Text>
-            <Text style={componentStyles.dashboardLabel}>Hitungan hari ini</Text>
+            <Text style={componentStyles.dashboardValue}>
+              {todayStats.todayCount}
+            </Text>
+            <Text style={componentStyles.dashboardLabel}>
+              Hitungan hari ini
+            </Text>
           </View>
           <View style={componentStyles.dashboardCard}>
             <Ionicons name="albums" size={18} color={colors.accent} />
-            <Text style={componentStyles.dashboardValue}>{todayStats.todaySessions}</Text>
-            <Text style={componentStyles.dashboardLabel}>Sesi terselesaikan</Text>
+            <Text style={componentStyles.dashboardValue}>
+              {todayStats.todaySessions}
+            </Text>
+            <Text style={componentStyles.dashboardLabel}>
+              Sesi terselesaikan
+            </Text>
           </View>
         </View>
 
@@ -171,6 +190,12 @@ export default function Index() {
             <Pressable style={componentStyles.shortcutButton}>
               <Ionicons name="book-outline" size={16} color={colors.inkSoft} />
               <Text style={componentStyles.shortcutText}>Panduan</Text>
+            </Pressable>
+          </Link>
+          <Link href="/demo" asChild>
+            <Pressable style={componentStyles.shortcutButton}>
+              <Ionicons name="book-outline" size={16} color={colors.inkSoft} />
+              <Text style={componentStyles.shortcutText}>Demo</Text>
             </Pressable>
           </Link>
         </View>
