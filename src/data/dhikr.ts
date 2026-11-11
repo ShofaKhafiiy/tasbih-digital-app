@@ -4,7 +4,7 @@
 // mengikuti tipe `Dhikr` di bawah (Type & Array of Objects).
 // ============================================================
 
-import type { Dhikr } from "../types/dhikr";
+import type { Dhikr } from "@/types/dhikr";
 export const DHIKR_LIST: Dhikr[] = [
   {
     id: "subhanallah",
@@ -43,5 +43,3 @@ export const DHIKR_LIST: Dhikr[] = [
     softColor: "#F0E4F2",
   },
 ];
-
-export { type Dhikr } from "../types/dhikr";

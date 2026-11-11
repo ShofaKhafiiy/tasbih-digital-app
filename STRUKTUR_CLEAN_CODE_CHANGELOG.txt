@@ -1,0 +1,253 @@
+================================================================================
+DOKUMENTASI PERUBAHAN STRUKTUR — TASBIH DIGITAL
+Branch kerja : feat/clean-structure-modul2
+Tanggal      : 2026-10-19
+Repo         : github.com/ShofaKhafiiy/tasbih-digital-app
+================================================================================
+
+Dokumen ini menjelaskan DUA gelombang perubahan:
+  (B) Baseline branch `main` — titik awal.
+  (C) Implementasi Modul 2 — branch `feat/modul2-hooks-nav` (commit 82618c2).
+  (D) Restrukturisasi struktur Clean Code — branch `feat/clean-structure-modul2`
+      (perubahan sampai sekarang).
+
+
+================================================================================
+B. BASELINE — BRANCH `main`
+================================================================================
+
+Commit acuan : f85abc6 (Merge PR #1 "refactor/terapin-modularisasi")
+
+Struktur saat itu (sebelum Modul 2):
+
+  src/
+  ├── app/
+  │   └── index.tsx            # SATU layar (home): cincin + pemilih dzikir + tombol
+  ├── components/
+  │   ├── ui/{Header,StartButton,TargetInputRow}.tsx + index.ts
+  │   ├── TasbihRing.tsx
+  │   └── DhikrSelector.tsx
+  ├── constants/{colors,spacing,typography,index}.ts
+  ├── data/dhikr.ts
+  ├── styles/{global,components,index}.ts
+  └── types/dhikr.ts
+
+Karakteristik: belum ada state navigasi, belum ada `expo-router` push,
+belum ada halaman kedua. `TasbihRing` masih hardcode angka 0.
+
+
+================================================================================
+C. IMPLEMENTASI MODUL 2 — BRANCH `feat/modul2-hooks-nav`
+================================================================================
+Commit tunggal: 82618c2 — "feat(modul2): tambah counting/recap, prop count,
+navigasi push/back/replace" (5 file, +158 / -10)
+
+Materi Modul 2 yang diterapkan: STATE, HOOKS, & NAVIGASI PAGE.
+
+--------------------------------------------------------------------------------
+C.1  src/app/_layout.tsx  (+3 baris)
+--------------------------------------------------------------------------------
+Menambahkan definisi layar pada Stack (rubrik: `_layout.tsx` + <Stack.Screen>):
+
+  <Stack.Screen name="index"    options={{ title: "Tasbih Digital" }} />
+  <Stack.Screen name="counting" options={{ title: "Tasbih Berjalan" }} />
+  <Stack.Screen name="recap"    options={{ title: "Hasil Tasbih" }} />
+
+--------------------------------------------------------------------------------
+C.2  src/app/index.tsx  (halaman home `/`)
+--------------------------------------------------------------------------------
+- Tambah `import { router } from "expo-router";`
+- `handleStart()` diubah dari `Alert.alert(...)` menjadi navigasi:
+
+    router.push({
+      pathname: "/counting",
+      params: {
+        id: activeDhikr.id,
+        ...(hasValidCustom ? { target: String(value) } : {}),
+      },
+    });
+
+  (rubrik: `router.push()` + mengirim params).
+- `<TasbihRing ... count={0} />` — karena `TasbihRing` kini punya prop `count`.
+
+--------------------------------------------------------------------------------
+C.3  src/app/counting.tsx  (BARU, 82 baris) — halaman `/counting`
+--------------------------------------------------------------------------------
+Menggabungkan hampir seluruh hooks Modul 2:
+
+  - useState  : activeDhikr, effectiveTarget, count
+  - useRef    : completedRef (guard, mencegah alert berulang)
+  - useEffect : dipicu ketika `count` mencapai `effectiveTarget`
+  - useLocalSearchParams: membaca `id` dan `target` dari URL
+  - Navigasi  : `router.back()` (tombol Kembali)
+                `router.replace({ pathname: "/recap", params: {...} })`
+
+CATATAN PENTING (lint `react-hooks/set-state-in-effect`):
+  Dilarang memanggil setState langsung di dalam useEffect. Solusinya memakai
+  `useRef` sebagai penanda (`completedRef.current`) — lihat baris 30, 34, 37, 61.
+
+--------------------------------------------------------------------------------
+C.4  src/app/recap.tsx  (BARU, 38 baris) — halaman `/recap`
+--------------------------------------------------------------------------------
+  - useLocalSearchParams: membaca `id`, `target`, `count`
+  - Menampilkan ringkasan sesi (dzikir, target, hitungan, status tercapai)
+  - Navigasi: `router.replace("/")` (Kembali ke Beranda)
+
+--------------------------------------------------------------------------------
+C.5  src/components/TasbihRing.tsx
+--------------------------------------------------------------------------------
+  - Tambah prop wajib `count: number` pada `TasbihRingProps`.
+  - Angka pada cincin diubah dari hardcode `0` menjadi `{count}`.
+  - Perapian formatting (tanpa newline di akhir file, dst.).
+
+
+================================================================================
+D. RESTRUKTURISASI STRUKTUR CLEAN CODE — BRANCH `feat/clean-structure-modul2`
+================================================================================
+Tujuan: pisahkan tanggung jawab dengan tegas —
+  * `src/app/`        -> HANYA routing / halaman (Expo Router)
+  - `src/` (lainnya)  : komponen, context, hooks, constants, data, styles, types
+
+Konvensi Expo Router (SDK 57) yang dipakai:
+  `_layout.tsx`   = layout privat (navigator), bukan halaman
+  `(tabs)/`       : route group (URL tidak berubah) — untuk bottom tabs
+  `[id].tsx`      : dynamic route -> /dzikir/:id
+  `[...slug].tsx` : catch-all route -> /panduan/*
+  `+not-found.tsx`: fallback 404
+  index.tsx       : halaman default sebuah folder
+
+--------------------------------------------------------------------------------
+D.1  Perbaikan yang dilakukan
+--------------------------------------------------------------------------------
+1) PINDAH LOKASI (dari root ke dalam src/) — sebelumnya salah taruh:
+     constants/  -> src/constants/
+     context/    -> src/context/
+     hooks/      -> src/hooks/
+
+2. HAPUS root `app/` yang merupakan duplikat lama (isinya versi home SEBELUM
+   Modul 2: tanpa router.push, tanpa prop count). Expo Router memang mengabaikan
+   `app/` root bila `src/app` ada, tetapi keberadaannya menyesatkan.
+
+3. RENAME folder route group:
+     src/app/((tabs)  ->  src/app/(tabs)      (kurung buka dobel itu salah)
+
+4. RENAME fallback 404:
+     src/app/not-found.tsx  ->  src/app/+not-found.tsx  (wajib diawali "+")
+
+5. KONVERSI IMPORT KE ALIAS `@/`
+   Memakai alias dari tsconfig (`@/* -> ./src/*`) supaya tidak lagi menghitung
+   kedalaman relatif (`../../`) dan konsisten dengan arahan Modul 2.
+   File yang diubah:
+     - src/components/DhikrSelector.tsx
+     - src/components/TasbihRing.tsx
+     - src/components/ui/Header.tsx
+     - src/components/ui/StartButton.tsx
+     - src/components/ui/TargetInputRow.tsx
+     - src/styles/components.ts
+     - src/styles/global.ts
+     - src/data/dhikr.ts
+     - src/app/_layout.tsx
+     - src/app/counting.tsx
+     - src/app/recap.tsx
+     - src/app/(tabs)/index.tsx
+   Contoh: `../constants` / `../../constants` -> `@/constants`
+           `../styles`  -> `@/styles`
+           `../types/dhikr` -> `@/types/dhikr`
+
+6. FILE BARU DIBUAT KOSONG (scaffold, 0 byte) — akan diisi bertahap:
+     src/app/(tabs)/_layout.tsx
+     src/app/(tabs)/history.tsx
+     src/app/(tabs)/settings.tsx
+     src/app/dzikir/[id].tsx
+     src/app/panduan/index.tsx
+     src/app/panduan/[...slug].tsx
+     src/app/+not-found.tsx
+     src/context/SettingsContext.tsx
+     src/hooks/useTapCooldown.ts
+
+--------------------------------------------------------------------------------
+C.6  STRUKTUR TARGET YANG DICAPAI SEKARANG
+--------------------------------------------------------------------------------
+  src/
+  ├── app/                              # ======= RUTE (Expo Router) =======
+  │   ├── _layout.tsx                   # _  root Stack (perlu tambah provider)
+  │   ├── (tabs)/                       # () route group (URL tidak berubah)
+  │   │   ├── _layout.tsx               # _  <Tabs>          [placeholder]
+  │   │   ├── index.tsx                 # /  Home (ring + mulai)
+  │   │   ├── history.tsx               # /history           [place-holder]
+  │   │   └── settings.tsx              # /settings          [place-holder]
+  │   ├── dzikir/
+  │   │   └── [id].tsx                  # [] /dzikir/:id     [place-holder]
+  │   ├── panduan/
+  │   │   ├── index.tsx                 # /panduan           [place-holder]
+  │   │   └── [...slug].tsx             # [...] /panduan/*   [place-holder]
+  │   ├── counting.tsx                  # /counting
+  │   ├── recap.tsx                     # /recap
+  │   └── +not-found.tsx                # +  404             [place-holder]
+  │
+  ├── components/                       # ======= NON-RUTE =======
+  │   ├── ui/{Header,StartButton,TargetInputRow}.tsx + index.ts
+  │   ├── TasbihRing.tsx
+  │   └── DhikrSelector.tsx
+  ├── context/
+  │   └── SettingsContext.tsx           # createContext + Provider   [KOSONG]
+  ├── hooks/
+  │   └── useTapCooldown.ts             # custom hook (useRef)       [KOSONG]
+  ├── constants/{colors,spacing,typography,index}.ts
+  ├── data/dhikr.ts
+  ├── styles/{global,components,index}.ts
+  └── types/dhikr.ts
+
+  ([place-holder] = default export minimal agar app tidak crash; isi asli
+   menyusul. [KOSONG] = masih file 0 byte.)
+  Catatan: `src/lib/format.ts` pada rencana bersifat OPSIONAL, belum dibuat.
+
+  CATATAN RUNTIME: file rute yang 0 byte TIDAK boleh dibiarkan — Expo Router
+  melempar `Element type is invalid... got: undefined` karena komponen layar
+  `undefined`. Karena itu tiap route WAJIB punya `export default`.
+
+
+================================================================================
+D. VERIFIKASI
+================================================================================
+  npx tsc --noEmit   -> exit 0
+  npx expo lint      -> exit 0
+
+  (tsc/lint tidak mendeteksi file rute kosong; itu error RUNTIME, bukan
+   type-check. Karena itu seluruh route sudah diberi `export default`.)
+
+
+================================================================================
+E. LANGKAH SELANJUTNYA (TODO — belum dikerjakan)
+================================================================================
+  1. Ganti placeholder dengan implementasi asli:
+     - (tabs)/_layout.tsx : <Tabs> dasar SUDAH ada (index/history/settings);
+                            lengkapi ikon & warna tab.
+     - (tabs)/history.tsx, settings.tsx, dzikir/[id].tsx, panduan/index.tsx,
+       panduan/[...slug].tsx, +not-found.tsx : masih placeholder sederhana.
+     - _layout.tsx        : bungkus <Stack> dengan <SettingsProvider>
+                            (SUDAH: screen "(tabs)", "counting", "recap",
+                             "dzikir/[id]", "panduan" didaftarkan)
+       CATATAN 1: sebelumnya `name="index"` menyebabkan error runtime
+       `No route named "index" exists` karena home sudah pindah ke (tabs);
+       sudah diperbaiki menjadi `name="(tabs)"`.
+       CATATAN 2: file route 0 byte menyebabkan `Element type is invalid...
+       got: undefined`; seluruh route sudah diberi default export.
+  2. Isi context/SettingsContext.tsx & hooks/useTapCooldown.ts (masih 0 byte).
+  3. PETINGGI: karena `experiments.typedRoutes: true`, setelah struktur rute
+     difinalkan jalankan `npx expo start` sebentar untuk regenerate
+     `.expo/types/router.d.ts`, lalu `npx tsc --noEmit` lagi.
+  4. Uji navigasi di Expo Go.
+  5. Commit perubahan.
+
+  Ringkasan status git (belum di-commit):
+    Modified : src/app/_layout.tsx, counting.tsx, recap.tsx,
+               src/components/*, src/data/dhikr.ts, src/styles/*
+    Deleted  : src/app/index.tsx (dipindah ke src/app/(tabs)/index.tsx)
+    Baru(??) : src/app/(tabs)/*, src/app/+not-found.tsx, src/app/dzikir/[id].tsx,
+               src/app/panduan/*, src/context/SettingsContext.tsx,
+               src/hooks/useTapCooldown.ts
+
+================================================================================
+END OF DOCUMENT
+================================================================================

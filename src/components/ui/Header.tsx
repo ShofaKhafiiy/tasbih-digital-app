@@ -1,29 +1,43 @@
-import { Image, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { globalStyles } from "../../styles";
-import { colors } from "../../constants";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { Text, View } from "react-native";
 
-const logoTasbih = require("../../../assets/images/logo-tasbih.png");
+import BrandMark from "@/components/brand/BrandMark";
+import { useTheme } from "@/context/ThemeContext";
+import { useAppStyles } from "@/styles";
 
 interface HeaderProps {
   subtitle?: string;
+  title?: string;
+  /** Varian ringkas: logo kecil, tanpa ornamen. */
+  compact?: boolean;
 }
 
-export default function Header({ subtitle = "Dekat dengan Allah, setiap hari" }: HeaderProps) {
+export default function Header({
+  subtitle = "Dekat dengan Allah, setiap hari",
+  title = "Tasbih Digital",
+  compact = false,
+}: HeaderProps) {
+  const { global } = useAppStyles();
+  const { colors } = useTheme();
+
+  if (compact) {
+    return (
+      <View style={global.headerCompact}>
+        <BrandMark size={28} />
+        <Text style={global.headerTitleCompact}>{title}</Text>
+      </View>
+    );
+  }
+
   return (
-    <View style={globalStyles.header}>
-      <Image
-        source={logoTasbih}
-        style={globalStyles.headerLogo}
-        accessibilityLabel="Logo Tasbih Digital"
-      />
-      <Text style={globalStyles.headerTitle}>Tasbih Digital</Text>
-      <Text style={globalStyles.headerSubtitle}>{subtitle}</Text>
-      {/* Ornamen Islami tipis: garis ─ lambang ─ garis */}
-      <View style={globalStyles.arabesque}>
-        <View style={globalStyles.arabesqueLine} />
+    <View style={global.header}>
+      <BrandMark size={40} style={{ marginBottom: 8 }} />
+      <Text style={global.headerTitle}>{title}</Text>
+      <Text style={global.headerSubtitle}>{subtitle}</Text>
+      <View style={global.arabesque}>
+        <View style={global.arabesqueLine} />
         <Ionicons name="diamond" size={10} color={colors.accent} />
-        <View style={globalStyles.arabesqueLine} />
+        <View style={global.arabesqueLine} />
       </View>
     </View>
   );

@@ -1,16 +1,36 @@
 // ============================================================
-// TIPOGRAFI — font sizes, weights, line heights
+// TIPOGRAFI — peran font & skala semantik
 // ============================================================
 
+export const fontFamily = {
+  display: "Fraunces_600SemiBold",
+  arabic: "Amiri_400Regular",
+  regular: "PlusJakartaSans_400Regular",
+  medium: "PlusJakartaSans_500Medium",
+  semibold: "PlusJakartaSans_600SemiBold",
+  bold: "PlusJakartaSans_700Bold",
+} as const;
+
 export const fontSize = {
-  xs: 10,
-  sm: 11,
-  md: 12,
-  lg: 13,
-  xl: 14,
-  xxl: 15,
-  xxxl: 16,
-  heading: 20,
+  display: 64,
+  h1: 32,
+  h2: 24,
+  h3: 20,
+  body: 16,
+  bodySm: 14,
+  caption: 12,
+  micro: 10,
+} as const;
+
+export const lineHeight = {
+  display: 68,
+  h1: 38,
+  h2: 30,
+  h3: 26,
+  body: 24,
+  bodySm: 21,
+  caption: 18,
+  micro: 14,
 } as const;
 
 export const fontWeight = {
@@ -19,16 +39,4 @@ export const fontWeight = {
   semibold: "600" as const,
   bold: "700" as const,
   extrabold: "800" as const,
-} as const;
-
-export const lineHeight = {
-  tight: 1.2,
-  normal: 1.5,
-  relaxed: 1.8,
-} as const;
-
-export const letterSpacing = {
-  tight: 0.3,
-  normal: 0,
-  wide: 0.6,
-} as const;
+};
