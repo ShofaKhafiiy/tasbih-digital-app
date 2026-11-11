@@ -1,62 +1,117 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
+import {
+  Alert,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+
 import Header from "@/components/ui/Header";
 import { useSessions } from "@/context/SessionsContext";
+import { useTheme } from "@/context/ThemeContext";
 import { DHIKR_LIST } from "@/data/dhikr";
-import { componentStyles, globalStyles } from "@/styles";
-import { FlatList, Pressable, Text, View } from "react-native";
+import { useAppStyles } from "@/styles";
+
+const MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "Mei",
+  "Jun",
+  "Jul",
+  "Agu",
+  "Sep",
+  "Okt",
+  "Nov",
+  "Des",
+];
+
+function formatDate(timestamp: number) {
+  const date = new Date(timestamp);
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${date.getDate()} ${MONTHS[date.getMonth()]} · ${hours}.${minutes}`;
+}
 
 export default function History() {
+  const { colors } = useTheme();
+  const { global, component } = useAppStyles();
   const { sessions, clearSessions } = useSessions();
 
+  function confirmClear() {
+    Alert.alert(
+      "Hapus semua riwayat?",
+      "Seluruh sesi yang tersimpan akan dihapus permanen.",
+      [
+        { text: "Batal", style: "cancel" },
+        {
+          text: "Hapus",
+          style: "destructive",
+          onPress: clearSessions,
+        },
+      ],
+    );
+  }
+
   return (
-    <View style={globalStyles.container}>
-      <View style={globalStyles.scrollContent}>
-        <Header subtitle="Riwayat sesi" />
+    <SafeAreaView style={global.container} edges={["top"]}>
+      <ScrollView
+        contentContainerStyle={global.tabScrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <Header subtitle="Sesi yang sudah selesai" />
 
         {sessions.length === 0 ? (
-          <Text style={componentStyles.historyEmpty}>
-            Belum ada sesi. Selesaikan satu target dulu.
-          </Text>
+          <View style={{ alignItems: "center", marginTop: 32 }}>
+            <Ionicons
+              name="time-outline"
+              size={32}
+              color={colors.muted}
+              style={{ marginBottom: 12 }}
+            />
+            <Text style={component.historyEmpty}>
+              Belum ada sesi. Selesaikan satu target dulu.
+            </Text>
+          </View>
         ) : (
-          <FlatList
-            data={sessions}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => {
-              const dhikr =
-                DHIKR_LIST.find((d) => d.id === item.dhikrId) ?? DHIKR_LIST[0];
-              const time = new Date(item.finishedAt).toLocaleTimeString();
-              return (
-                <View style={componentStyles.historyRow}>
-                  <View
-                    style={[
-                      componentStyles.historyDot,
-                      { backgroundColor: dhikr.color },
-                    ]}
-                  />
-                  <View style={{ flex: 1 }}>
-                    <Text style={componentStyles.historyName}>
-                      {dhikr.name}
-                    </Text>
-                    <Text style={componentStyles.historyMeta}>
-                      {item.count}/{item.target} kali — {time}
-                    </Text>
-                  </View>
+          sessions.map((session) => {
+            const dhikr =
+              DHIKR_LIST.find((item) => item.id === session.dhikrId) ??
+              DHIKR_LIST[0];
+
+            return (
+              <View key={session.id} style={component.historyRow}>
+                <View
+                  style={[
+                    component.historyDot,
+                    { backgroundColor: dhikr.color },
+                  ]}
+                />
+                <View style={{ flex: 1 }}>
+                  <Text style={component.historyName}>{dhikr.name}</Text>
+                  <Text style={component.historyMeta}>
+                    {session.count}/{session.target} kali ·{" "}
+                    {formatDate(session.finishedAt)}
+                  </Text>
                 </View>
-              );
-            }}
-          />
+              </View>
+            );
+          })
         )}
 
         {sessions.length > 0 && (
           <Pressable
-            onPress={clearSessions}
-            style={componentStyles.countingGhostButton}
+            onPress={confirmClear}
+            style={component.dangerButton}
+            accessibilityRole="button"
           >
-            <Text style={componentStyles.countingGhostText}>
-              Bersihkan Riwayat
-            </Text>
+            <Text style={component.dangerText}>Hapus semua riwayat</Text>
           </Pressable>
         )}
-      </View>
-    </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }

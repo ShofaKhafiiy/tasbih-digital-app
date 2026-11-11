@@ -10,6 +10,7 @@ export const spacing = {
   xl: 16,
   xxl: 20,
   xxxl: 24,
+  huge: 32,
 } as const;
 
 export const borderRadius = {
@@ -17,20 +18,23 @@ export const borderRadius = {
   md: 12,
   lg: 16,
   xl: 24,
+  xxl: 32,
   full: 9999,
 } as const;
 
 export const componentSizes = {
-  headerLogo: 44,
-  navArrow: { width: 40, height: 50 },
-  navCardHeight: 50,
-  primaryButtonHeight: 50,
-  targetInputHeight: 38,
-  targetRowPadding: 6,
+  headerLogo: 40,
+  headerLogoCompact: 28,
+  navCardHeight: 56,
+  primaryButtonHeight: 54,
+  targetInputHeight: 46,
+  tabBarHeight: 62,
+  tabBarSpace: 108,
+  minTouch: 48,
 } as const;
 
 export const screenPadding = {
-  horizontal: 20,
-  top: 10,
-  bottom: 12,
+  horizontal: 22,
+  top: 8,
+  bottom: 24,
 } as const;

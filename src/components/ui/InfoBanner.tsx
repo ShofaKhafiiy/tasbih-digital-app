@@ -1,7 +1,8 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { Pressable, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { colors } from "@/constants";
-import { componentStyles } from "@/styles";
+
+import { useTheme } from "@/context/ThemeContext";
+import { useAppStyles } from "@/styles";
 
 type BannerTone = "info" | "error" | "success";
 
@@ -20,17 +21,25 @@ export default function InfoBanner({
   tone = "info",
   onClose,
 }: InfoBannerProps) {
+  const { colors } = useTheme();
+  const { component } = useAppStyles();
+
   if (!visible) return null;
 
   const isError = tone === "error";
   const isSuccess = tone === "success";
+  const iconColor = isError
+    ? colors.danger
+    : isSuccess
+      ? colors.success
+      : colors.primary;
 
   return (
     <View
       style={[
-        componentStyles.infoBanner,
-        isError && componentStyles.infoBannerError,
-        isSuccess && componentStyles.infoBannerSuccess,
+        component.infoBanner,
+        isError && component.infoBannerError,
+        isSuccess && component.infoBannerSuccess,
       ]}
     >
       <Ionicons
@@ -42,11 +51,11 @@ export default function InfoBanner({
               : "information-circle"
         }
         size={18}
-        color={isError ? colors.accent : colors.primary}
+        color={iconColor}
       />
-      <View style={componentStyles.infoBannerBody}>
-        <Text style={componentStyles.infoBannerTitle}>{title}</Text>
-        <Text style={componentStyles.infoBannerText}>{message}</Text>
+      <View style={component.infoBannerBody}>
+        <Text style={component.infoBannerTitle}>{title}</Text>
+        <Text style={component.infoBannerText}>{message}</Text>
       </View>
       <Pressable
         onPress={onClose}

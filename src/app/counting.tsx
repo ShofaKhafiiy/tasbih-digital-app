@@ -1,147 +1,218 @@
-import { useEffect, useRef, useState } from "react";
-import { Pressable, View, Text, Dimensions } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { router, useLocalSearchParams } from "expo-router";
-import * as Haptics from "expo-haptics";
-import { globalStyles, componentStyles } from "@/styles";
-import { DHIKR_LIST } from "@/data/dhikr";
-import type { Dhikr } from "@/types/dhikr";
-import { useSessions } from "@/context/SessionsContext";
-import { useSettings } from "@/context/SettingsContext";
-import { useTapCooldown } from "@/hooks/useTapCooldown";
-import Header from "@/components/ui/Header";
-import TasbihRing from "@/components/TasbihRing";
+import { useEffect, useRef } from "react";
+import {
+  Alert,
+  Pressable,
+  Text,
+  useWindowDimensions,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-const { width } = Dimensions.get("window");
-const RING_SIZE = Math.min(width - 60, 340);
+import BeadRing from "@/components/tasbih/BeadRing";
+import BeadRing3D from "@/components/tasbih/BeadRing3D";
+import CompletionOverlay from "@/components/tasbih/CompletionOverlay";
+import { screenPadding, spacing } from "@/constants";
+import { useActiveSession } from "@/context/ActiveSessionContext";
+import { useSettings } from "@/context/SettingsContext";
+import { useTheme } from "@/context/ThemeContext";
+import { useAppStyles } from "@/styles";
+
 const TARGET_MIN = 1;
 const TARGET_MAX = 9999;
 
 export default function Counting() {
   const params = useLocalSearchParams<{ id?: string; target?: string }>();
-  const { addSession } = useSessions();
-  const { hapticsEnabled } = useSettings();
-  const canTap = useTapCooldown();
+  const { colors } = useTheme();
+  const { global, component } = useAppStyles();
+  const { ambient3D } = useSettings();
+  const {
+    dhikr,
+    count,
+    target,
+    completed,
+    increment,
+    undo,
+    reset,
+    finish,
+    selectDhikr,
+    setTarget,
+  } = useActiveSession();
 
-  const [activeDhikr] = useState<Dhikr>(() => {
-    const found = DHIKR_LIST.find((d) => d.id === params.id);
-    return found ?? DHIKR_LIST[0];
-  });
-
-  const [effectiveTarget] = useState<number>(() => {
-    const t = Number(params.target);
-    if (Number.isInteger(t) && t >= TARGET_MIN && t <= TARGET_MAX) return t;
-    return activeDhikr.target;
-  });
-
-  const [count, setCount] = useState(0);
-  const completedRef = useRef(false);
-  const startedAtRef = useRef(0);
-  const completed = count >= effectiveTarget && effectiveTarget > 0;
-
-  useEffect(() => {
-    startedAtRef.current = Date.now();
-  }, []);
+  const { width } = useWindowDimensions();
+  const ringSize = Math.max(160, Math.min(width - 96, 332));
+  const initializedRef = useRef(false);
 
   useEffect(() => {
-    if (completedRef.current) return;
-    if (effectiveTarget <= 0 || count < effectiveTarget) return;
+    if (initializedRef.current) return;
+    initializedRef.current = true;
 
-    completedRef.current = true;
+    if (params.id) selectDhikr(params.id);
 
-    addSession({
-      id: `${activeDhikr.id}-${Date.now()}`,
-      dhikrId: activeDhikr.id,
-      count,
-      target: effectiveTarget,
-      startedAt: startedAtRef.current,
-      finishedAt: Date.now(),
-    });
-
-    if (hapticsEnabled) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    const nextTarget = Number(params.target);
+    if (
+      Number.isInteger(nextTarget) &&
+      nextTarget >= TARGET_MIN &&
+      nextTarget <= TARGET_MAX
+    ) {
+      setTarget(nextTarget);
     }
-  }, [count, effectiveTarget, activeDhikr, addSession, hapticsEnabled]);
+  }, [params.id, params.target, selectDhikr, setTarget]);
 
-  function handleRingTap() {
-    if (completedRef.current) return;
-    if (!canTap()) return;
-    if (hapticsEnabled) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  function goHome() {
+    if (router.canGoBack()) {
+      router.back();
+      return;
     }
-    setCount((c) => c + 1);
+    router.replace("/");
+  }
+
+  function handleClose() {
+    if (count > 0 && !completed) {
+      Alert.alert(
+        "Keluar dari sesi?",
+        "Hitungan saat ini akan disimpan ke riwayat.",
+        [
+          { text: "Batal", style: "cancel" },
+          {
+            text: "Keluar",
+            style: "destructive",
+            onPress: () => {
+              finish();
+              goHome();
+            },
+          },
+        ],
+      );
+      return;
+    }
+
+    finish();
+    goHome();
+  }
+
+  function handleFinish() {
+    finish();
+    goHome();
+  }
+
+  function handleReset() {
+    if (count === 0) return;
+    Alert.alert("Reset hitungan?", "Hitungan saat ini akan dikembalikan ke 0.", [
+      { text: "Batal", style: "cancel" },
+      { text: "Reset", style: "destructive", onPress: reset },
+    ]);
   }
 
   function handleViewResult() {
     router.replace({
       pathname: "/recap",
       params: {
-        id: activeDhikr.id,
-        target: String(effectiveTarget),
+        id: dhikr.id,
+        target: String(target),
         count: String(count),
       },
     });
-  }
-
-  function handleCloseCompletion() {
-    router.replace("/");
-  }
-
-  function handleReset() {
-    completedRef.current = false;
-    setCount(0);
+    reset();
   }
 
   return (
-    <View style={globalStyles.container}>
-      {completed && (
-        <View style={componentStyles.completionOverlay}>
-          <View style={componentStyles.completionCard}>
-            <Text style={componentStyles.completionTitle}>Target Tercapai</Text>
-            <Text style={componentStyles.completionText}>
-              {effectiveTarget} kali {activeDhikr.name} selesai.
-            </Text>
-            <View style={componentStyles.completionButtonRow}>
-              <Pressable
-                onPress={handleCloseCompletion}
-                style={componentStyles.completionGhostButton}
-              >
-                <Text style={componentStyles.completionGhostText}>Kembali</Text>
-              </Pressable>
-              <Pressable
-                onPress={handleViewResult}
-                style={[globalStyles.primaryButton, { flex: 1, marginTop: 0 }]}
-              >
-                <Text style={globalStyles.primaryButtonText}>Lihat Hasil</Text>
-              </Pressable>
-            </View>
+    <SafeAreaView style={global.container} edges={["top", "bottom"]}>
+      <View
+        style={{
+          flex: 1,
+          paddingHorizontal: screenPadding.horizontal,
+          paddingTop: spacing.md,
+        }}
+      >
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: spacing.xl,
+          }}
+        >
+          <Pressable
+            onPress={handleClose}
+            style={global.iconButton}
+            accessibilityRole="button"
+            accessibilityLabel="Keluar dari mode fokus"
+          >
+            <Ionicons name="chevron-back" size={22} color={colors.inkSoft} />
+          </Pressable>
+
+          <View style={{ alignItems: "center" }}>
+            <Text style={global.sectionEyebrow}>Mode fokus</Text>
+            <Text style={global.headerTitleCompact}>{dhikr.name}</Text>
           </View>
+
+          <Pressable
+            onPress={undo}
+            disabled={count === 0 || completed}
+            style={({ pressed }) => [
+              global.iconButton,
+              pressed && { opacity: 0.7 },
+              (count === 0 || completed) && { opacity: 0.35 },
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel="Batalkan satu hitungan"
+            accessibilityState={{ disabled: count === 0 || completed }}
+          >
+            <Ionicons name="arrow-undo" size={18} color={colors.inkSoft} />
+          </Pressable>
         </View>
-      )}
 
-      <View style={globalStyles.scrollContent}>
-        <Header compact subtitle={activeDhikr.name} />
-
-        <View style={globalStyles.ringArea}>
-          <TasbihRing
-            size={RING_SIZE}
-            dhikr={activeDhikr}
-            onTap={handleRingTap}
-            count={count}
-          />
-          <Text style={componentStyles.ringStatus}>
-            Target {effectiveTarget} kali
+        <View style={[global.ringArea, { flex: 1 }]}>
+          <View
+            style={{
+              width: ringSize,
+              height: ringSize,
+              alignSelf: "center",
+            }}
+          >
+            <BeadRing3D size={ringSize} enabled={ambient3D} />
+            <BeadRing
+              size={ringSize}
+              count={count}
+              target={target}
+              onTap={increment}
+              disabled={completed}
+            />
+          </View>
+          <Text style={component.ringHint}>
+            {completed
+              ? "Target tercapai. Lanjutkan atau selesaikan sesi."
+              : `Target ${target} kali — ketuk cincin untuk menghitung`}
           </Text>
         </View>
 
-        <View style={componentStyles.countingActions}>
-          <Pressable onPress={handleReset} style={componentStyles.countingGhostButton}>
-            <Text style={componentStyles.countingGhostText}>Reset</Text>
+        <View style={component.countingActions}>
+          <Pressable
+            onPress={handleReset}
+            style={component.countingGhostButton}
+            accessibilityRole="button"
+          >
+            <Text style={component.countingGhostText}>Reset</Text>
           </Pressable>
-          <Pressable onPress={() => router.back()} style={globalStyles.primaryButton}>
-            <Text style={globalStyles.primaryButtonText}>Selesai</Text>
+          <Pressable
+            onPress={handleFinish}
+            style={global.primaryButton}
+            accessibilityRole="button"
+          >
+            <Text style={global.primaryButtonText}>Selesai</Text>
           </Pressable>
         </View>
       </View>
-    </View>
+
+      <CompletionOverlay
+        visible={completed}
+        dhikrName={dhikr.name}
+        target={target}
+        onClose={handleFinish}
+        onViewResult={handleViewResult}
+      />
+    </SafeAreaView>
   );
 }
