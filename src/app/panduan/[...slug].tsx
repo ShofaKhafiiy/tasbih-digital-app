@@ -1,3 +1,8 @@
+/**
+ * @file Halaman detail panduan dinamis (`/panduan/[...slug]`) untuk menampilkan isi artikel panduan.
+ * @layer App / Screens
+ */
+
 import { useLocalSearchParams } from "expo-router";
 import { ScrollView, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -5,23 +10,17 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Header from "@/components/ui/Header";
 import { fontFamily, fontSize } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
+import { getGuideBySlug } from "@/data/guides";
 import { useAppStyles } from "@/styles";
 
-const CONTENT: Record<string, string> = {
-  memulai:
-    "Ketuk cincin untuk menghitung. Setiap ketukan menambah hitungan dan bisa dibatalkan lewat tombol undo.",
-  target:
-    "Buka pengaturan target untuk menentukan jumlah hitungan per putaran. Target bisa diubah kapan saja.",
-  riwayat:
-    "Buka tab Riwayat untuk melihat sesi yang sudah selesai. Riwayat tersimpan otomatis di perangkat.",
-};
-
+/** Layar detail satu topik panduan berdasarkan parameter `slug`. */
 export default function PanduanDetail() {
   const { slug } = useLocalSearchParams<{ slug?: string[] }>();
   const { colors } = useTheme();
   const { global } = useAppStyles();
   const key = (slug ?? [])[0] ?? "";
-  const body = CONTENT[key] ?? "Panduan belum tersedia untuk bagian ini.";
+  const guide = getGuideBySlug(key);
+  const body = guide?.body ?? "Panduan belum tersedia untuk bagian ini.";
 
   return (
     <SafeAreaView style={global.container} edges={["top", "bottom"]}>

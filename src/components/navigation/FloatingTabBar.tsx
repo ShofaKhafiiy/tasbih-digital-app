@@ -1,3 +1,8 @@
+/**
+ * @file Komponen bottom tab bar mengambang kustom untuk navigasi antar tab utama.
+ * @layer Components / Navigation
+ */
+
 import Ionicons from "@expo/vector-icons/Ionicons";
 import type { BottomTabBarProps } from "expo-router/js-tabs";
 import { Pressable, Text, View } from "react-native";
@@ -22,6 +27,7 @@ const TAB_META: Record<
   },
 };
 
+/** Merender bilah navigasi tab mengambang untuk rute Tasbih, Riwayat, dan Pengaturan. */
 export default function FloatingTabBar({
   emitter,
   state,

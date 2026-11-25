@@ -1,3 +1,8 @@
+/**
+ * @file Halaman fallback 404 saat pengguna mengakses rute yang tidak terdaftar.
+ * @layer App / Screens
+ */
+
 import { Link } from "expo-router";
 import { Text, View } from "react-native";
 
@@ -5,6 +10,7 @@ import { fontFamily } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
 import { useAppStyles } from "@/styles";
 
+/** Layar Not Found dengan tautan kembali ke Beranda. */
 export default function NotFound() {
   const { colors } = useTheme();
   const { global } = useAppStyles();

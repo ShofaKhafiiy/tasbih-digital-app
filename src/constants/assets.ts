@@ -1,8 +1,9 @@
-// ============================================================
-// ASET — tautan placeholder. Ganti dengan aset final.
-// Native splash tetap memakai file lokal di app.json.
-// ============================================================
+/**
+ * @file Tautan aset placeholder grafis (native splash tetap memakai file lokal di app.json).
+ * @layer Constants
+ */
 
+/** Kumpulan URL aset placeholder untuk kebutuhan pratinjau komponen. */
 export const ASSETS = {
   brandMark: "https://placehold.co/240x240/164A38/EADCC2/png?text=Brand",
   splashWordmark: "https://placehold.co/720x240/F7F1E7/164A38/png?text=Tasbih",

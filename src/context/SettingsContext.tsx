@@ -1,4 +1,8 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+/**
+ * @file Context pengaturan preferensi pengguna (tema, haptics, auto-reset, dan efek 3D).
+ * @layer Context
+ */
+
 import {
   createContext,
   useCallback,
@@ -8,14 +12,11 @@ import {
 } from "react";
 import type { ReactNode } from "react";
 
-export type ThemeMode = "system" | "light" | "dark";
+import { STORAGE_KEYS } from "@/constants/config";
+import { getStorageJson, setStorageJson } from "@/services/storageService";
+import type { AppSettings, ThemeMode } from "@/types/settings";
 
-export interface AppSettings {
-  hapticsEnabled: boolean;
-  autoReset: boolean;
-  ambient3D: boolean;
-  themeMode: ThemeMode;
-}
+export type { AppSettings, ThemeMode };
 
 interface SettingsContextValue extends AppSettings {
   hydrated: boolean;
@@ -26,8 +27,6 @@ interface SettingsContextValue extends AppSettings {
   setThemeMode: (mode: ThemeMode) => void;
 }
 
-const STORAGE_KEY = "@tasbih/settings/v1";
-
 const DEFAULT_SETTINGS: AppSettings = {
   hapticsEnabled: true,
   autoReset: false,
@@ -37,8 +36,8 @@ const DEFAULT_SETTINGS: AppSettings = {
 
 const SettingsContext = createContext<SettingsContextValue | null>(null);
 
-function sanitize(raw: unknown): Partial<AppSettings> {
-  if (!raw || typeof raw !== "object") return {};
+function sanitize(raw: unknown): Partial<AppSettings> | null {
+  if (!raw || typeof raw !== "object") return null;
   const value = raw as Record<string, unknown>;
   const next: Partial<AppSettings> = {};
 
@@ -62,6 +61,7 @@ function sanitize(raw: unknown): Partial<AppSettings> {
   return next;
 }
 
+/** Provider pengaturan aplikasi dengan sinkronisasi otomatis ke AsyncStorage. */
 export function SettingsProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [hydrated, setHydrated] = useState(false);
@@ -69,14 +69,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let alive = true;
 
-    AsyncStorage.getItem(STORAGE_KEY)
-      .then((raw) => {
-        if (!alive || !raw) return;
-        try {
-          setSettings({ ...DEFAULT_SETTINGS, ...sanitize(JSON.parse(raw)) });
-        } catch {
-          // Data rusak: pakai default.
-        }
+    getStorageJson(STORAGE_KEYS.SETTINGS, sanitize)
+      .then((parsed) => {
+        if (!alive || !parsed) return;
+        setSettings({ ...DEFAULT_SETTINGS, ...parsed });
       })
       .finally(() => {
         if (alive) setHydrated(true);
@@ -89,9 +85,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!hydrated) return;
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(settings)).catch(
-      () => undefined,
-    );
+    void setStorageJson(STORAGE_KEYS.SETTINGS, settings);
   }, [settings, hydrated]);
 
   const toggleHaptics = useCallback(
@@ -132,6 +126,12 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * Hook untuk membaca dan mengubah pengaturan preferensi aplikasi.
+ *
+ * @returns Nilai context pengaturan beserta setter/toggle-nya.
+ * @throws Error bila dipanggil di luar `SettingsProvider`.
+ */
 export function useSettings() {
   const ctx = useContext(SettingsContext);
   if (!ctx) {

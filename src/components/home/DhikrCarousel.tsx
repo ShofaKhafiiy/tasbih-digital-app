@@ -1,3 +1,8 @@
+/**
+ * @file Carousel horizontal pemilih bacaan dzikir dengan snap-to-item dan indikator titik.
+ * @layer Components / Home
+ */
+
 import { useCallback, useEffect, useRef } from "react";
 import { FlatList, Pressable, Text, View } from "react-native";
 import type { ListRenderItem } from "react-native";
@@ -15,6 +20,10 @@ interface DhikrCarouselProps {
   onSelect: (dhikr: Dhikr) => boolean;
 }
 
+/**
+ * Menampilkan daftar pilihan dzikir dalam FlatList horizontal yang otomatis tersinkronisasi
+ * dengan `selectedId`.
+ */
 export default function DhikrCarousel({
   data,
   selectedId,

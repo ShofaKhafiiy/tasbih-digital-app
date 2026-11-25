@@ -1,3 +1,8 @@
+/**
+ * @file Context tema aplikasi yang menyelesaikan mode tema pengguna (`system`/`light`/`dark`) menjadi palet warna aktif.
+ * @layer Context
+ */
+
 import { createContext, useContext, useMemo } from "react";
 import type { ReactNode } from "react";
 import { useColorScheme } from "react-native";
@@ -18,6 +23,7 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
+/** Provider tema yang menyediakan `scheme`, `colors`, dan `isDark` ke seluruh pohon UI. */
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const systemScheme = useColorScheme();
   const { themeMode } = useSettings();
@@ -43,6 +49,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * Hook untuk mengakses palet warna dan status mode gelap/terang aktif.
+ *
+ * @returns Objek tema (`scheme`, `colors`, `isDark`).
+ * @throws Error bila dipanggil di luar `ThemeProvider`.
+ */
 export function useTheme() {
   const ctx = useContext(ThemeContext);
   if (!ctx) {

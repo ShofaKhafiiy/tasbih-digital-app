@@ -1,3 +1,8 @@
+/**
+ * @file Lapisan latar efek manik 3D ambient menggunakan React Three Fiber dan ErrorBoundary aman.
+ * @layer Components / Tasbih
+ */
+
 "use no memo";
 /* eslint-disable react/no-unknown-property */
 
@@ -92,6 +97,9 @@ class SceneBoundary extends Component<
   }
 }
 
+/**
+ * Merender cincin manik 3D berputar halus di belakang `BeadRing` (otomatis nonaktif di web atau saat dimatikan).
+ */
 export default function BeadRing3D({ size, enabled = true }: BeadRing3DProps) {
   const { colors } = useTheme();
   const [mounted, setMounted] = useState(false);

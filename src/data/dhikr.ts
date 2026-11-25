@@ -1,10 +1,11 @@
-// ============================================================
-// DATA ZIKIR
-// Ubah / tambah daftar zikir di sini. Setiap item wajib
-// mengikuti tipe `Dhikr` di bawah (Type & Array of Objects).
-// ============================================================
+/**
+ * @file Data statis daftar bacaan dzikir bawaan aplikasi.
+ * @layer Data
+ */
 
 import type { Dhikr } from "@/types/dhikr";
+
+/** Daftar dzikir pilihan yang tersedia di beranda, carousel, dan halaman detail. */
 export const DHIKR_LIST: Dhikr[] = [
   {
     id: "subhanallah",

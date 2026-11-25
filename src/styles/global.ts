@@ -1,3 +1,8 @@
+/**
+ * @file Style global aplikasi (kontainer halaman, header, tombol primer/sekunder, dan judul seksi).
+ * @layer Styles
+ */
+
 import { StyleSheet } from "react-native";
 
 import {
@@ -10,10 +15,12 @@ import {
 } from "@/constants";
 import type { AppColors } from "@/constants/colors";
 
-// ============================================================
-// STYLE GLOBAL (layout, container, header, tombol)
-// ============================================================
-
+/**
+ * Menghasilkan kumpulan style global berdasarkan palet warna tema aktif.
+ *
+ * @param colors - Palet warna tema aktif (terang/gelap).
+ * @returns Objek StyleSheet global aplikasi.
+ */
 export function makeGlobalStyles(colors: AppColors) {
   return StyleSheet.create({
     // ── KONTAINER ──
@@ -231,4 +238,5 @@ export function makeGlobalStyles(colors: AppColors) {
   });
 }
 
+/** Tipe hasil style global yang dihasilkan `makeGlobalStyles`. */
 export type GlobalStyles = ReturnType<typeof makeGlobalStyles>;

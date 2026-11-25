@@ -1,3 +1,8 @@
+/**
+ * @file Komponen header halaman standar dengan varian penuh (ornamen) maupun ringkas.
+ * @layer Components / UI
+ */
+
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Text, View } from "react-native";
 
@@ -12,6 +17,7 @@ interface HeaderProps {
   compact?: boolean;
 }
 
+/** Header seragam untuk halaman sekunder (Riwayat, Pengaturan, Recap, Panduan, dan Detail Dzikir). */
 export default function Header({
   subtitle = "Dekat dengan Allah, setiap hari",
   title = "Tasbih Digital",

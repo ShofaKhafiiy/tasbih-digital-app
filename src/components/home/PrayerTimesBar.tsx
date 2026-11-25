@@ -1,58 +1,24 @@
+/**
+ * @file Banner jadwal salat harian lengkap dengan hitung mundur waktu salat berikutnya dan teks berjalan.
+ * @layer Components / Home
+ */
+
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Animated, {
-    Easing,
-    useAnimatedStyle,
-    useSharedValue,
-    withRepeat,
-    withTiming,
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
 } from "react-native-reanimated";
 
 import { useTheme } from "@/context/ThemeContext";
-import type { PrayerSchedule } from "@/services/prayerService";
 import { useAppStyles } from "@/styles";
-
-type NextPrayer = {
-  schedule: PrayerSchedule;
-  date: Date;
-  isTomorrow: boolean;
-};
-
-function getNextPrayer(
-  schedules: PrayerSchedule[],
-  now: number,
-): NextPrayer | null {
-  if (schedules.length === 0) {
-    return null;
-  }
-
-  for (const schedule of schedules) {
-    const [hours, minutes] = schedule.time.split(":").map(Number);
-    const date = new Date(now);
-    date.setHours(hours, minutes, 0, 0);
-    if (date.getTime() > now) {
-      return { schedule, date, isTomorrow: false };
-    }
-  }
-
-  // Semua waktu hari ini sudah lewat — berikutnya Subuh esok hari.
-  const [hours, minutes] = schedules[0].time.split(":").map(Number);
-  const date = new Date(now);
-  date.setDate(date.getDate() + 1);
-  date.setHours(hours, minutes, 0, 0);
-  return { schedule: schedules[0], date, isTomorrow: true };
-}
-
-function formatCountdown(remainingMs: number): string {
-  const totalSeconds = Math.max(0, Math.floor(remainingMs / 1000));
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-  return [hours, minutes, seconds]
-    .map((value) => String(value).padStart(2, "0"))
-    .join(":");
-}
+import type { PrayerSchedule } from "@/types/prayer";
+import { formatCountdown } from "@/utils/dateFormat";
+import { getNextPrayer } from "@/utils/prayerTime";
 
 function MarqueeRow({ text }: { text: string }) {
   const { component } = useAppStyles();
@@ -68,6 +34,7 @@ function MarqueeRow({ text }: { text: string }) {
 
   useEffect(() => {
     if (!isLooping) {
+      // eslint-disable-next-line react-hooks/immutability -- Reanimated SharedValue memang mutabel
       translateX.value = 0;
       return;
     }
@@ -120,6 +87,9 @@ interface PrayerTimesBarProps {
   schedules: PrayerSchedule[];
 }
 
+/**
+ * Menampilkan countdown menuju waktu salat terdekat dan ticker seluruh jadwal salat hari ini.
+ */
 export default function PrayerTimesBar({ schedules }: PrayerTimesBarProps) {
   const { colors } = useTheme();
   const { component } = useAppStyles();

@@ -1,8 +1,16 @@
+/**
+ * @file Service penjadwalan notifikasi lokal pengingat waktu salat (H-15 menit & adzan).
+ * @layer Services
+ */
+
 import * as Notification from "expo-notifications";
 import { AndroidImportance } from "expo-notifications";
-
 import { Platform } from "react-native";
-import { getPrayerSchedule, PrayerSchedule } from "./prayerService";
+
+import { PRAYER_CONFIG } from "@/constants/config";
+import type { PrayerSchedule } from "@/types/prayer";
+import { parsePrayerTimeForDate } from "@/utils/dateFormat";
+import { getPrayerSchedule } from "./prayerService";
 
 Notification.setNotificationHandler({
   handleNotification: async () => ({
@@ -14,7 +22,12 @@ Notification.setNotificationHandler({
   }),
 });
 
-export async function requestNotificationPermission() {
+/**
+ * Memeriksa dan meminta izin notifikasi lokal kepada pengguna bila belum diberikan.
+ *
+ * @returns `true` jika izin notifikasi aktif.
+ */
+export async function requestNotificationPermission(): Promise<boolean> {
   const permission = await Notification.getPermissionsAsync();
 
   if (permission.granted) {
@@ -22,37 +35,37 @@ export async function requestNotificationPermission() {
   }
 
   const requested = await Notification.requestPermissionsAsync();
-
   return requested.granted;
 }
 
+/**
+ * Menyiapkan channel notifikasi Android untuk pengingat waktu salat.
+ *
+ * @returns `true` jika channel berhasil disiapkan pada perangkat Android.
+ */
 export async function setupNotificationChannel(): Promise<boolean> {
   if (Platform.OS !== "android") {
     return false;
   }
 
   try {
-    await Notification.setNotificationChannelAsync("prayer-reminders", {
-      name: "Pengingat Waktu Sholat",
-      importance: AndroidImportance.MAX,
-      sound: "default",
-      vibrationPattern: [0, 250, 250, 250],
-    });
+    await Notification.setNotificationChannelAsync(
+      PRAYER_CONFIG.NOTIFICATION_CHANNEL_ID,
+      {
+        name: PRAYER_CONFIG.NOTIFICATION_CHANNEL_NAME,
+        importance: AndroidImportance.MAX,
+        sound: "default",
+        vibrationPattern: [0, 250, 250, 250],
+      },
+    );
     return true;
   } catch (error) {
-    console.warn("Channel notifikasi tidak dapat dibuat:", error);
+    console.warn(
+      "[prayerNotificationService.setupNotificationChannel]",
+      error,
+    );
     return false;
   }
-}
-
-function createPrayerDate(time: string): Date {
-  const [hours, minutes] = time.split(":").map(Number);
-
-  const date = new Date();
-
-  date.setHours(hours, minutes, 0, 0);
-
-  return date;
 }
 
 async function scheduleReminder(
@@ -75,65 +88,78 @@ async function scheduleReminder(
       data: {
         prayerName,
         reminderType,
-        tag: "prayer-reminder",
+        tag: PRAYER_CONFIG.NOTIFICATION_TAG,
       },
     },
     trigger: {
       type: Notification.SchedulableTriggerInputTypes.DATE,
       date,
-      ...(useChannel ? { channelId: "prayer-reminders" } : {}),
+      ...(useChannel
+        ? { channelId: PRAYER_CONFIG.NOTIFICATION_CHANNEL_ID }
+        : {}),
     },
   });
 }
 
-//menjadwalkan pengigat untuk sholat lima waktu hari ini
-
+/**
+ * Menjadwalkan ulang notifikasi pengingat salat lima waktu untuk hari ini.
+ * Pengingat sebelumnya dengan tag yang sama dibatalkan terlebih dahulu agar tidak duplikat.
+ *
+ * @param preloaded - Daftar jadwal salat opsional jika sudah tersedia dari state/hook.
+ * @returns Jadwal yang dijadwalkan, atau `null` apabila izin notifikasi ditolak.
+ */
 export async function schedulePrayerReminders(
   preloaded?: PrayerSchedule[],
 ): Promise<PrayerSchedule[] | null> {
-  const channelReady = await setupNotificationChannel();
-  const hasPermission = await requestNotificationPermission();
+  try {
+    const channelReady = await setupNotificationChannel();
+    const hasPermission = await requestNotificationPermission();
 
-  if (!hasPermission) {
-    return null;
-  }
+    if (!hasPermission) {
+      return null;
+    }
 
-  const schedules = preloaded ?? (await getPrayerSchedule());
-  const useChannel = Platform.OS === "android" && channelReady;
+    const schedules = preloaded ?? (await getPrayerSchedule());
+    const useChannel = Platform.OS === "android" && channelReady;
 
-  const existing = await Notification.getAllScheduledNotificationsAsync();
+    const existing = await Notification.getAllScheduledNotificationsAsync();
 
-  for (const notification of existing) {
-    if (notification.content.data?.tag === "prayer-reminder") {
-      await Notification.cancelScheduledNotificationAsync(
-        notification.identifier,
+    for (const notification of existing) {
+      if (notification.content.data?.tag === PRAYER_CONFIG.NOTIFICATION_TAG) {
+        await Notification.cancelScheduledNotificationAsync(
+          notification.identifier,
+        );
+      }
+    }
+
+    const leadMs = PRAYER_CONFIG.REMINDER_LEAD_MINUTES * 60 * 1000;
+
+    for (const prayer of schedules) {
+      const prayerDate = parsePrayerTimeForDate(prayer.time);
+      const beforeDate = new Date(prayerDate.getTime() - leadMs);
+
+      await scheduleReminder(
+        `${PRAYER_CONFIG.REMINDER_LEAD_MINUTES} Menit Menuju ${prayer.label}`,
+        `Sebentar lagi waktu salat ${prayer.label} akan tiba.`,
+        beforeDate,
+        prayer.name,
+        "before",
+        useChannel,
+      );
+
+      await scheduleReminder(
+        `Waktu ${prayer.label} Telah Tiba`,
+        `Saatnya menunaikan salat ${prayer.label}.`,
+        prayerDate,
+        prayer.name,
+        "adhan",
+        useChannel,
       );
     }
+
+    return schedules;
+  } catch (error) {
+    console.error("[prayerNotificationService.schedulePrayerReminders]", error);
+    throw error;
   }
-
-  for (const prayer of schedules) {
-    const prayerDate = createPrayerDate(prayer.time);
-
-    const beforedate = new Date(prayerDate.getTime() - 15 * 60 * 1000);
-
-    await scheduleReminder(
-      `15 Menit Menuju ${prayer.label}`,
-      `Sebentar lagi waktu salat ${prayer.label} akan tiba.`,
-      beforedate,
-      prayer.name,
-      "before",
-      useChannel,
-    );
-
-    await scheduleReminder(
-      `Waktu ${prayer.label} Telah Tiba`,
-      `Saatnya menunaikan salat ${prayer.label}.`,
-      prayerDate,
-      prayer.name,
-      "adhan",
-      useChannel,
-    );
-  }
-
-  return schedules;
 }

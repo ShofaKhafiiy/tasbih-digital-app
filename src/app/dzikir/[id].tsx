@@ -1,3 +1,8 @@
+/**
+ * @file Halaman detail dzikir dinamis (`/dzikir/[id]`) dengan pratinjau cincin dan tombol mulai fokus.
+ * @layer App / Screens
+ */
+
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { router, useLocalSearchParams } from "expo-router";
 import { Pressable, ScrollView, Text, View } from "react-native";
@@ -6,16 +11,17 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import BeadRing from "@/components/tasbih/BeadRing";
 import Header from "@/components/ui/Header";
 import { useTheme } from "@/context/ThemeContext";
-import { DHIKR_LIST } from "@/data/dhikr";
 import { useAppStyles } from "@/styles";
+import { getDhikrById } from "@/utils/dhikr";
 
 const RING_SIZE = 232;
 
+/** Layar detail informasi satu bacaan dzikir berdasarkan parameter rute `id`. */
 export default function DzikirDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { colors } = useTheme();
   const { global, component } = useAppStyles();
-  const dhikr = DHIKR_LIST.find((item) => item.id === id) ?? DHIKR_LIST[0];
+  const dhikr = getDhikrById(id);
 
   function handleStart() {
     router.push({ pathname: "/counting", params: { id: dhikr.id } });

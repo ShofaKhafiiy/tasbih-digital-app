@@ -1,7 +1,13 @@
+/**
+ * @file Layout navigasi tab utama (Tasbih, Riwayat, Pengaturan) dengan `FloatingTabBar`.
+ * @layer App / Layout
+ */
+
 import { Tabs } from "expo-router/js-tabs";
 
 import FloatingTabBar from "@/components/navigation/FloatingTabBar";
 
+/** Mengonfigurasi tab utama aplikasi dengan bilah navigasi mengambang kustom. */
 export default function TabsLayout() {
   return (
     <Tabs

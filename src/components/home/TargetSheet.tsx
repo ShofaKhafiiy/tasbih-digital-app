@@ -1,3 +1,8 @@
+/**
+ * @file Bottom sheet modal untuk mengatur target jumlah hitungan tasbih.
+ * @layer Components / Home
+ */
+
 import { useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -10,13 +15,10 @@ import {
   View,
 } from "react-native";
 
-import { spacing } from "@/constants";
+import { SESSION_CONFIG, spacing } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
 import { useAppStyles } from "@/styles";
-
-const QUICK_TARGETS = [33, 99, 100, 1000];
-const TARGET_MIN = 1;
-const TARGET_MAX = 9999;
+import { isValidTarget } from "@/utils/dhikr";
 
 interface TargetSheetProps {
   visible: boolean;
@@ -25,6 +27,9 @@ interface TargetSheetProps {
   onApply: (target: number) => void;
 }
 
+/**
+ * Modal pengaturan target hitungan dengan pilihan cepat dan validasi input angka.
+ */
 export default function TargetSheet({
   visible,
   target,
@@ -36,11 +41,7 @@ export default function TargetSheet({
   const [text, setText] = useState(String(target));
 
   const value = Number(text);
-  const valid =
-    text.trim() !== "" &&
-    Number.isInteger(value) &&
-    value >= TARGET_MIN &&
-    value <= TARGET_MAX;
+  const valid = text.trim() !== "" && isValidTarget(value);
 
   function handleApply() {
     if (!valid) return;
@@ -87,7 +88,7 @@ export default function TargetSheet({
             />
 
             <View style={component.sheetQuickRow}>
-              {QUICK_TARGETS.map((quick) => (
+              {SESSION_CONFIG.QUICK_TARGETS.map((quick) => (
                 <Pressable
                   key={quick}
                   onPress={() => setText(String(quick))}

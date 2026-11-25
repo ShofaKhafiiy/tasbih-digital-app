@@ -1,3 +1,8 @@
+/**
+ * @file Kartu ringkas statistik harian (total hitungan dan sesi selesai hari ini).
+ * @layer Components / Home
+ */
+
 import { Text, View } from "react-native";
 
 import { useAppStyles } from "@/styles";
@@ -7,6 +12,7 @@ interface TodayRibbonProps {
   sessions: number;
 }
 
+/** Menampilkan dua metrik capaian dzikir hari ini secara berdampingan. */
 export default function TodayRibbon({ count, sessions }: TodayRibbonProps) {
   const { component } = useAppStyles();
 

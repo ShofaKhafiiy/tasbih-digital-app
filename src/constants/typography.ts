@@ -1,7 +1,9 @@
-// ============================================================
-// TIPOGRAFI — peran font & skala semantik
-// ============================================================
+/**
+ * @file Token tipografi aplikasi (keluarga font, skala ukuran, line-height, dan ketebalan).
+ * @layer Constants
+ */
 
+/** Nama font terdaftar yang dimuat pada RootLayout. */
 export const fontFamily = {
   display: "Fraunces_600SemiBold",
   arabic: "Amiri_400Regular",
@@ -11,6 +13,7 @@ export const fontFamily = {
   bold: "PlusJakartaSans_700Bold",
 } as const;
 
+/** Skala ukuran huruf semantik. */
 export const fontSize = {
   display: 64,
   h1: 32,
@@ -22,6 +25,7 @@ export const fontSize = {
   micro: 10,
 } as const;
 
+/** Tinggi baris (line-height) pasangan skala `fontSize`. */
 export const lineHeight = {
   display: 68,
   h1: 38,
@@ -33,6 +37,7 @@ export const lineHeight = {
   micro: 14,
 } as const;
 
+/** Bobot ketebalan huruf standar React Native. */
 export const fontWeight = {
   normal: "400" as const,
   medium: "500" as const,

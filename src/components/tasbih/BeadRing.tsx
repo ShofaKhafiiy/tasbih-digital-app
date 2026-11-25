@@ -1,3 +1,8 @@
+/**
+ * @file Cincin manik tasbih interaktif berbasis SVG + Reanimated dengan efek ripple dan animasi angka.
+ * @layer Components / Tasbih
+ */
+
 import { useEffect, useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
@@ -26,6 +31,7 @@ const absoluteFill = {
   bottom: 0,
 };
 
+/** Properti untuk komponen cincin manik interaktif `BeadRing`. */
 export interface BeadRingProps {
   size: number;
   count: number;
@@ -34,6 +40,9 @@ export interface BeadRingProps {
   disabled?: boolean;
 }
 
+/**
+ * Menampilkan 33 manik melingkar beserta progres target dan penghitung ketukan di bagian tengah.
+ */
 export default function BeadRing({
   size,
   count,

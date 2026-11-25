@@ -1,6 +1,11 @@
+/**
+ * @file Halaman utama (Beranda) tempat berdzikir cepat, memilih dzikir, memantau jadwal salat, dan melihat statistik harian.
+ * @layer App / Screens
+ */
+
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { router } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Alert,
   Pressable,
@@ -15,39 +20,23 @@ import BrandMark from "@/components/brand/BrandMark";
 import DhikrCarousel from "@/components/home/DhikrCarousel";
 import PrayerTimesBar from "@/components/home/PrayerTimesBar";
 import TargetSheet from "@/components/home/TargetSheet";
+import TasbihHeroCard from "@/components/home/TasbihHeroCard";
 import TodayRibbon from "@/components/home/TodayRibbon";
-import BeadRing from "@/components/tasbih/BeadRing";
-import BeadRing3D from "@/components/tasbih/BeadRing3D";
 import CompletionOverlay from "@/components/tasbih/CompletionOverlay";
-import PatternBackground from "@/components/ui/PatternBackground";
 import { spacing } from "@/constants";
 import { useActiveSession } from "@/context/ActiveSessionContext";
 import { useSessions } from "@/context/SessionsContext";
 import { useSettings } from "@/context/SettingsContext";
 import { useTheme } from "@/context/ThemeContext";
 import { DHIKR_LIST } from "@/data/dhikr";
+import { usePrayerReminders } from "@/hooks/usePrayerReminders";
 import { usePrayerSchedule } from "@/hooks/usePrayerSchedule";
-import { schedulePrayerReminders } from "@/services/prayerNotificationService";
 import { useAppStyles } from "@/styles";
 import type { Dhikr } from "@/types/dhikr";
+import { formatHomeDate } from "@/utils/dateFormat";
+import { getTodaySessionStats } from "@/utils/sessionStats";
 
-const DAYS = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-
-const MONTHS = [
-  "Januari",
-  "Februari",
-  "Maret",
-  "April",
-  "Mei",
-  "Juni",
-  "Juli",
-  "Agustus",
-  "September",
-  "Oktober",
-  "November",
-  "Desember",
-];
-
+/** Layar Beranda yang merangkai jadwal salat, hero tasbih, pemilih dzikir, dan ringkasan hari ini. */
 export default function Home() {
   const { colors } = useTheme();
   const { global, component } = useAppStyles();
@@ -71,32 +60,10 @@ export default function Home() {
 
   const { schedules: prayerSchedules, loading: prayerLoading } =
     usePrayerSchedule();
+  usePrayerReminders(prayerSchedules, prayerLoading);
 
-  useEffect(() => {
-    if (prayerLoading || prayerSchedules.length === 0) return;
-    schedulePrayerReminders(prayerSchedules).catch((error) => {
-      console.warn("Gagal mengatur pengingat salat:", error);
-    });
-  }, [prayerLoading, prayerSchedules]);
-
-  const dateLabel = useMemo(() => {
-    const now = new Date();
-    return `${DAYS[now.getDay()]}, ${now.getDate()} ${MONTHS[now.getMonth()]}`;
-  }, []);
-
-  const todayStats = useMemo(() => {
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
-    let todayCount = 0;
-    let todaySessions = 0;
-    for (const session of sessions) {
-      if (session.finishedAt >= startOfDay.getTime()) {
-        todaySessions += 1;
-        todayCount += session.count;
-      }
-    }
-    return { count: todayCount, sessions: todaySessions };
-  }, [sessions]);
+  const dateLabel = useMemo(() => formatHomeDate(), []);
+  const todayStats = useMemo(() => getTodaySessionStats(sessions), [sessions]);
 
   function handleSelectDhikr(next: Dhikr) {
     if (next.id === dhikr.id) return true;
@@ -186,78 +153,18 @@ export default function Home() {
 
         <PrayerTimesBar schedules={prayerSchedules} />
 
-        <View style={component.hero}>
-          <PatternBackground opacity={0.5} />
-
-          <View style={component.heroTopRow}>
-            <View style={component.heroHintRow}>
-              <View style={component.heroPulseDot} />
-              <Text style={component.heroHintText}>{statusLabel}</Text>
-            </View>
-            <Pressable
-              onPress={undo}
-              disabled={count === 0 || completed}
-              accessibilityRole="button"
-              accessibilityLabel="Batalkan satu hitungan"
-              accessibilityState={{ disabled: count === 0 || completed }}
-              style={({ pressed }) => [
-                component.heroUndo,
-                pressed && { opacity: 0.7 },
-                (count === 0 || completed) && { opacity: 0.35 },
-              ]}
-            >
-              <Ionicons name="arrow-undo" size={18} color={colors.inkSoft} />
-            </Pressable>
-          </View>
-
-          <Text style={component.heroArabic} allowFontScaling={false}>
-            {dhikr.arabic}
-          </Text>
-          <Text style={component.heroName}>{dhikr.name}</Text>
-
-          <View
-            style={{
-              width: ringSize,
-              height: ringSize,
-              alignSelf: "center",
-              marginTop: spacing.md,
-            }}
-          >
-            <BeadRing3D size={ringSize} enabled={ambient3D} />
-            <BeadRing
-              size={ringSize}
-              count={count}
-              target={target}
-              onTap={increment}
-              disabled={completed}
-            />
-          </View>
-
-          <Text style={component.ringHint}>
-            {completed
-              ? "Putaran selesai — mulai putaran baru atau lihat hasil."
-              : "Ketuk cincin untuk menghitung"}
-          </Text>
-
-          {count > 0 && !completed && (
-            <Pressable
-              onPress={handleReset}
-              hitSlop={8}
-              accessibilityRole="button"
-              accessibilityLabel="Reset hitungan"
-              style={{ alignSelf: "center", marginTop: spacing.md }}
-            >
-              <Text
-                style={[
-                  global.sectionTitle,
-                  { color: colors.danger, fontSize: 12 },
-                ]}
-              >
-                Reset
-              </Text>
-            </Pressable>
-          )}
-        </View>
+        <TasbihHeroCard
+          dhikr={dhikr}
+          count={count}
+          target={target}
+          completed={completed}
+          ringSize={ringSize}
+          ambient3D={ambient3D}
+          statusLabel={statusLabel}
+          onIncrement={increment}
+          onUndo={undo}
+          onReset={handleReset}
+        />
 
         <View style={component.ctaRow}>
           <Pressable

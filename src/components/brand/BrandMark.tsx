@@ -1,3 +1,8 @@
+/**
+ * @file Komponen logo merek bulat Tasbih Digital.
+ * @layer Components / Brand
+ */
+
 import { Image } from "expo-image";
 import type { ImageStyle, StyleProp } from "react-native";
 
@@ -8,6 +13,7 @@ interface BrandMarkProps {
   style?: StyleProp<ImageStyle>;
 }
 
+/** Menampilkan logo aplikasi berbentuk lingkaran dengan ukuran fleksibel. */
 export default function BrandMark({ size = 40, style }: BrandMarkProps) {
   return (
     <Image

@@ -1,3 +1,8 @@
+/**
+ * @file Overlay animasi splash pembuka dengan cincin manik dan wordmark Tasbih Digital.
+ * @layer Components / Brand
+ */
+
 import { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Animated, {
@@ -28,6 +33,10 @@ interface SplashRevealProps {
   onDone: () => void;
 }
 
+/**
+ * Animasi transisi pembuka setelah font dan context terhidrasi.
+ * Mendukung mode *reduced motion* dan memanggil `onDone` saat animasi selesai.
+ */
 export default function SplashReveal({ onDone }: SplashRevealProps) {
   const { colors } = useTheme();
   const reducedMotion = useReducedMotion();

@@ -1,3 +1,8 @@
+/**
+ * @file Layout akar aplikasi: memuat font, menyusun hierarki Provider, mengatur Stack navigasi, dan mengontrol SplashScreen.
+ * @layer App / Layout
+ */
+
 import { Amiri_400Regular } from "@expo-google-fonts/amiri/400Regular";
 import { Fraunces_600SemiBold } from "@expo-google-fonts/fraunces/600SemiBold";
 import { PlusJakartaSans_400Regular } from "@expo-google-fonts/plus-jakarta-sans/400Regular";
@@ -27,6 +32,7 @@ SplashScreen.setOptions({
   fade: true,
 });
 
+/** Komponen akar yang membungkus seluruh rute dengan Provider aplikasi. */
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
     Amiri_400Regular,
@@ -64,7 +70,9 @@ function AppShell({ fontsReady }: { fontsReady: boolean }) {
   useEffect(() => {
     if (!ready) return;
     const frame = requestAnimationFrame(() => {
-      SplashScreen.hideAsync().catch(() => undefined);
+      SplashScreen.hideAsync().catch((error) => {
+        console.warn("[RootLayout.hideSplash]", error);
+      });
     });
     return () => cancelAnimationFrame(frame);
   }, [ready]);

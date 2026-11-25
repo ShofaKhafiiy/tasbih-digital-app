@@ -1,8 +1,9 @@
-// ============================================================
-// PALET — Modern Islamic Minimalism
-// Light: warm parchment · Dark: emerald night
-// ============================================================
+/**
+ * @file Palet warna Modern Islamic Minimalism untuk tema terang dan gelap.
+ * @layer Constants
+ */
 
+/** Kontrak token warna semantik yang dipakai oleh seluruh UI dan StyleSheet. */
 export type AppColors = {
   background: string;
   backgroundElevated: string;
@@ -27,6 +28,7 @@ export type AppColors = {
   black: string;
 };
 
+/** Palet warna tema terang (warm parchment). */
 export const lightColors: AppColors = {
   background: "#F7F1E7",
   backgroundElevated: "#FBF8F2",
@@ -51,6 +53,7 @@ export const lightColors: AppColors = {
   black: "#000000",
 };
 
+/** Palet warna tema gelap (emerald night). */
 export const darkColors: AppColors = {
   background: "#0B1512",
   backgroundElevated: "#0F1D18",
@@ -75,8 +78,10 @@ export const darkColors: AppColors = {
   black: "#000000",
 };
 
+/** Skema warna aktif yang didukung aplikasi. */
 export type ColorScheme = "light" | "dark";
 
+/** Peta palet warna berdasarkan skema terang atau gelap. */
 export const palettes: Record<ColorScheme, AppColors> = {
   light: lightColors,
   dark: darkColors,

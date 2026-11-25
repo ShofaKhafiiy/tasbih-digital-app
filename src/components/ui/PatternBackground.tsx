@@ -1,3 +1,8 @@
+/**
+ * @file Latar belakang pola geometris islami (girih) berbasis SVG untuk kartu hero.
+ * @layer Components / UI
+ */
+
 import { useId } from "react";
 import { StyleSheet, View } from "react-native";
 import Svg, { Circle, Defs, Pattern, Path, Rect } from "react-native-svg";
@@ -8,6 +13,7 @@ interface PatternBackgroundProps {
   opacity?: number;
 }
 
+/** Merender pola ubin geometris berulang non-interaktif di latar komponen induk. */
 export default function PatternBackground({
   opacity = 0.55,
 }: PatternBackgroundProps) {

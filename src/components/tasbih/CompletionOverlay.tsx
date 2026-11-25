@@ -1,3 +1,8 @@
+/**
+ * @file Overlay modal yang muncul ketika target hitungan tasbih tercapai.
+ * @layer Components / Tasbih
+ */
+
 import { Pressable, Text, View } from "react-native";
 
 import { useAppStyles } from "@/styles";
@@ -10,6 +15,7 @@ interface CompletionOverlayProps {
   onViewResult: () => void;
 }
 
+/** Menampilkan konfirmasi target tercapai beserta pilihan kembali atau melihat ringkasan hasil. */
 export default function CompletionOverlay({
   visible,
   dhikrName,

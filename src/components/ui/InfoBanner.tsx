@@ -1,3 +1,8 @@
+/**
+ * @file Komponen banner notifikasi inline dengan varian info, sukses, dan error.
+ * @layer Components / UI
+ */
+
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Pressable, Text, View } from "react-native";
 
@@ -14,6 +19,7 @@ interface InfoBannerProps {
   onClose: () => void;
 }
 
+/** Menampilkan pesan status ringkas yang dapat ditutup oleh pengguna. */
 export default function InfoBanner({
   visible,
   title,

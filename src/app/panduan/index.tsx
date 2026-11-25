@@ -1,3 +1,8 @@
+/**
+ * @file Halaman indeks Panduan yang menampilkan daftar topik panduan penggunaan aplikasi.
+ * @layer App / Screens
+ */
+
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Link } from "expo-router";
 import { Pressable, ScrollView, Text } from "react-native";
@@ -5,14 +10,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import Header from "@/components/ui/Header";
 import { useTheme } from "@/context/ThemeContext";
+import { GUIDES } from "@/data/guides";
 import { useAppStyles } from "@/styles";
 
-const GUIDES = [
-  { slug: "memulai", title: "Memulai Tasbih" },
-  { slug: "target", title: "Mengatur Target" },
-  { slug: "riwayat", title: "Melihat Riwayat" },
-];
-
+/** Layar daftar tautan menuju masing-masing topik panduan. */
 export default function PanduanIndex() {
   const { colors } = useTheme();
   const { global, component } = useAppStyles();

@@ -1,3 +1,8 @@
+/**
+ * @file Halaman ringkasan hasil sesi tasbih setelah pengguna selesai berdzikir.
+ * @layer App / Screens
+ */
+
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { router, useLocalSearchParams } from "expo-router";
 import { Pressable, ScrollView, Text, View } from "react-native";
@@ -6,9 +11,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Header from "@/components/ui/Header";
 import { fontFamily } from "@/constants";
 import { useTheme } from "@/context/ThemeContext";
-import { DHIKR_LIST } from "@/data/dhikr";
 import { useAppStyles } from "@/styles";
+import { getDhikrById } from "@/utils/dhikr";
 
+/** Layar ringkasan jumlah hitungan akhir terhadap target sesi. */
 export default function Recap() {
   const params = useLocalSearchParams<{
     id?: string;
@@ -18,8 +24,7 @@ export default function Recap() {
   const { colors } = useTheme();
   const { global, component } = useAppStyles();
 
-  const dhikr =
-    DHIKR_LIST.find((item) => item.id === params.id) ?? DHIKR_LIST[0];
+  const dhikr = getDhikrById(params.id);
   const target = Number(params.target) || dhikr.target;
   const count = Number(params.count) || 0;
   const done = count >= target;

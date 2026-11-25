@@ -1,14 +1,17 @@
+/**
+ * @file Halaman tab Pengaturan untuk mengelola tema, getaran, reset otomatis, efek 3D, dan hapus riwayat.
+ * @layer App / Screens
+ */
+
 import { Alert, Pressable, ScrollView, Switch, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import Header from "@/components/ui/Header";
 import { useSessions } from "@/context/SessionsContext";
-import {
-  useSettings,
-  type ThemeMode,
-} from "@/context/SettingsContext";
+import { useSettings } from "@/context/SettingsContext";
 import { useTheme } from "@/context/ThemeContext";
 import { useAppStyles } from "@/styles";
+import type { ThemeMode } from "@/types/settings";
 
 const THEME_OPTIONS: { value: ThemeMode; label: string }[] = [
   { value: "system", label: "Sistem" },
@@ -16,6 +19,7 @@ const THEME_OPTIONS: { value: ThemeMode; label: string }[] = [
   { value: "dark", label: "Gelap" },
 ];
 
+/** Layar Pengaturan preferensi aplikasi yang tersimpan otomatis ke perangkat. */
 export default function Settings() {
   const { colors } = useTheme();
   const { global, component } = useAppStyles();

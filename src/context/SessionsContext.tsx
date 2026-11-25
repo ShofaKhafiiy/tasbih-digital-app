@@ -1,4 +1,8 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+/**
+ * @file Context penyimpan riwayat sesi tasbih yang telah selesai beserta persistensinya.
+ * @layer Context
+ */
+
 import {
   createContext,
   useCallback,
@@ -8,6 +12,8 @@ import {
 } from "react";
 import type { ReactNode } from "react";
 
+import { SESSION_CONFIG, STORAGE_KEYS } from "@/constants/config";
+import { getStorageJson, setStorageJson } from "@/services/storageService";
 import type { Session } from "@/types/session";
 
 interface SessionsContextValue {
@@ -16,8 +22,6 @@ interface SessionsContextValue {
   addSession: (session: Session) => void;
   clearSessions: () => void;
 }
-
-const STORAGE_KEY = "@tasbih/sessions/v1";
 
 const SessionsContext = createContext<SessionsContextValue | null>(null);
 
@@ -34,6 +38,12 @@ function isSession(value: unknown): value is Session {
   );
 }
 
+function sanitizeSessions(raw: unknown): Session[] | null {
+  if (!Array.isArray(raw)) return null;
+  return raw.filter(isSession);
+}
+
+/** Provider riwayat sesi tasbih yang dimuat dari dan disimpan ke AsyncStorage. */
 export function SessionsProvider({ children }: { children: ReactNode }) {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [hydrated, setHydrated] = useState(false);
@@ -41,17 +51,10 @@ export function SessionsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let alive = true;
 
-    AsyncStorage.getItem(STORAGE_KEY)
-      .then((raw) => {
-        if (!alive || !raw) return;
-        try {
-          const parsed: unknown = JSON.parse(raw);
-          if (Array.isArray(parsed)) {
-            setSessions(parsed.filter(isSession));
-          }
-        } catch {
-          // Data rusak: mulai dari kosong.
-        }
+    getStorageJson(STORAGE_KEYS.SESSIONS, sanitizeSessions)
+      .then((parsed) => {
+        if (!alive || !parsed) return;
+        setSessions(parsed);
       })
       .finally(() => {
         if (alive) setHydrated(true);
@@ -64,13 +67,13 @@ export function SessionsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!hydrated) return;
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(sessions)).catch(
-      () => undefined,
-    );
+    void setStorageJson(STORAGE_KEYS.SESSIONS, sessions);
   }, [sessions, hydrated]);
 
   const addSession = useCallback((session: Session) => {
-    setSessions((prev) => [session, ...prev].slice(0, 500));
+    setSessions((prev) =>
+      [session, ...prev].slice(0, SESSION_CONFIG.MAX_SAVED_SESSIONS),
+    );
   }, []);
 
   const clearSessions = useCallback(() => {
@@ -86,6 +89,12 @@ export function SessionsProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * Hook untuk membaca daftar riwayat sesi serta menambah atau menghapus riwayat.
+ *
+ * @returns Nilai context riwayat sesi.
+ * @throws Error bila dipanggil di luar `SessionsProvider`.
+ */
 export function useSessions() {
   const ctx = useContext(SessionsContext);
   if (!ctx) {

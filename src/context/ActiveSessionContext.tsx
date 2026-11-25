@@ -1,4 +1,8 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+/**
+ * @file Context pengelola state sesi tasbih yang sedang berjalan (hitungan, target, undo, reset, auto-save).
+ * @layer Context
+ */
+
 import * as Haptics from "expo-haptics";
 import {
   createContext,
@@ -10,23 +14,15 @@ import {
 } from "react";
 import type { ReactNode } from "react";
 
-import { DHIKR_LIST } from "@/data/dhikr";
+import { SESSION_CONFIG, STORAGE_KEYS } from "@/constants/config";
 import { useSessions } from "@/context/SessionsContext";
 import { useSettings } from "@/context/SettingsContext";
+import { DHIKR_LIST } from "@/data/dhikr";
 import { useTapCooldown } from "@/hooks/useTapCooldown";
+import { getStorageJson, setStorageJson } from "@/services/storageService";
 import type { Dhikr } from "@/types/dhikr";
-
-const STORAGE_KEY = "@tasbih/active/v1";
-const TARGET_MIN = 1;
-const TARGET_MAX = 9999;
-
-interface ActiveSession {
-  dhikrId: string;
-  target: number;
-  count: number;
-  startedAt: number;
-  completed: boolean;
-}
+import type { ActiveSession } from "@/types/session";
+import { clampTarget, getDhikrById } from "@/utils/dhikr";
 
 interface ActiveSessionContextValue {
   hydrated: boolean;
@@ -57,9 +53,10 @@ const ActiveSessionContext = createContext<ActiveSessionContextValue | null>(
   null,
 );
 
-function clampTarget(value: number) {
-  if (!Number.isFinite(value)) return defaultDhikr.target;
-  return Math.min(TARGET_MAX, Math.max(TARGET_MIN, Math.round(value)));
+function triggerHaptic(task: Promise<void>) {
+  task.catch((error) => {
+    console.warn("[ActiveSessionContext.haptics]", error);
+  });
 }
 
 function sanitize(raw: unknown): ActiveSession | null {
@@ -82,6 +79,7 @@ function sanitize(raw: unknown): ActiveSession | null {
   };
 }
 
+/** Provider state sesi tasbih aktif beserta persistensi ter-debounce ke AsyncStorage. */
 export function ActiveSessionProvider({ children }: { children: ReactNode }) {
   const { addSession } = useSessions();
   const { hapticsEnabled, autoReset } = useSettings();
@@ -94,18 +92,11 @@ export function ActiveSessionProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let alive = true;
 
-    AsyncStorage.getItem(STORAGE_KEY)
-      .then((raw) => {
-        if (!alive || !raw) return;
-        try {
-          const parsed = sanitize(JSON.parse(raw));
-          if (parsed) {
-            sessionSavedRef.current = parsed.completed;
-            setActive(parsed);
-          }
-        } catch {
-          // Data rusak: mulai sesi baru.
-        }
+    getStorageJson(STORAGE_KEYS.ACTIVE_SESSION, sanitize)
+      .then((parsed) => {
+        if (!alive || !parsed) return;
+        sessionSavedRef.current = parsed.completed;
+        setActive(parsed);
       })
       .finally(() => {
         if (alive) setHydrated(true);
@@ -120,22 +111,17 @@ export function ActiveSessionProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!hydrated) return;
     const timer = setTimeout(() => {
-      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(active)).catch(
-        () => undefined,
-      );
-    }, 350);
+      void setStorageJson(STORAGE_KEYS.ACTIVE_SESSION, active);
+    }, SESSION_CONFIG.SAVE_DEBOUNCE_MS);
     return () => clearTimeout(timer);
   }, [active, hydrated]);
 
-  const dhikr =
-    DHIKR_LIST.find((d) => d.id === active.dhikrId) ?? defaultDhikr;
+  const dhikr = getDhikrById(active.dhikrId);
 
   const increment = useCallback(() => {
     if (!canTap()) return;
     if (hapticsEnabled) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
-        () => undefined,
-      );
+      triggerHaptic(Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light));
     }
     setActive((prev) => {
       if (prev.completed) return prev;
@@ -168,7 +154,7 @@ export function ActiveSessionProvider({ children }: { children: ReactNode }) {
       if (next.id === active.dhikrId) return;
 
       if (hapticsEnabled) {
-        Haptics.selectionAsync().catch(() => undefined);
+        triggerHaptic(Haptics.selectionAsync());
       }
       sessionSavedRef.current = false;
       setActive({
@@ -219,12 +205,12 @@ export function ActiveSessionProvider({ children }: { children: ReactNode }) {
       finishedAt: Date.now(),
     });
     if (hapticsEnabled) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(
-        () => undefined,
+      triggerHaptic(
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success),
       );
     }
     if (autoReset) {
-      const timer = setTimeout(reset, 1600);
+      const timer = setTimeout(reset, SESSION_CONFIG.AUTO_RESET_DELAY_MS);
       return () => clearTimeout(timer);
     }
   }, [
@@ -261,6 +247,12 @@ export function ActiveSessionProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * Hook untuk mengakses state dan aksi sesi tasbih aktif.
+ *
+ * @returns Nilai context sesi aktif.
+ * @throws Error bila dipanggil di luar `ActiveSessionProvider`.
+ */
 export function useActiveSession() {
   const ctx = useContext(ActiveSessionContext);
   if (!ctx) {

@@ -1,3 +1,8 @@
+/**
+ * @file Halaman mode fokus penghitungan tasbih layar penuh tanpa distraksi tab bar.
+ * @layer App / Screens
+ */
+
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef } from "react";
@@ -18,10 +23,9 @@ import { useActiveSession } from "@/context/ActiveSessionContext";
 import { useSettings } from "@/context/SettingsContext";
 import { useTheme } from "@/context/ThemeContext";
 import { useAppStyles } from "@/styles";
+import { isValidTarget } from "@/utils/dhikr";
 
-const TARGET_MIN = 1;
-const TARGET_MAX = 9999;
-
+/** Layar penghitungan fokus untuk satu bacaan dzikir dan target aktif. */
 export default function Counting() {
   const params = useLocalSearchParams<{ id?: string; target?: string }>();
   const { colors } = useTheme();
@@ -51,11 +55,7 @@ export default function Counting() {
     if (params.id) selectDhikr(params.id);
 
     const nextTarget = Number(params.target);
-    if (
-      Number.isInteger(nextTarget) &&
-      nextTarget >= TARGET_MIN &&
-      nextTarget <= TARGET_MAX
-    ) {
+    if (isValidTarget(nextTarget)) {
       setTarget(nextTarget);
     }
   }, [params.id, params.target, selectDhikr, setTarget]);
