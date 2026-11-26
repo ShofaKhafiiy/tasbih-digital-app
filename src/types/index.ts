@@ -3,6 +3,7 @@
  * @layer Types
  */
 
+export * from "./auth";
 export * from "./dhikr";
 export * from "./guide";
 export * from "./prayer";

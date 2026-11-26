@@ -31,14 +31,14 @@ Fase 3 (45 mnt — Integrasi & Tukar Pemahaman)
 
 Kerjakan singkat di 1 branch dasar (misal `feat/modul4-base`) lalu jadikan titik awal kedua branch anggota:
 
-- [ ] Instalasi dependensi bersama: `expo-secure-store` dan `@supabase/supabase-js`.
-- [ ] Siapkan `.env` (berisi `EXPO_PUBLIC_SUPABASE_URL` & `EXPO_PUBLIC_SUPABASE_ANON_KEY`) dan pastikan `.env` tercantum di `.gitignore`. *(Keduanya menyalin nilai kunci proyek Supabase yang sama ke `.env` lokal masing-masing).*
-- [ ] Buat `src/types/auth.ts` dan ekspor di `src/types/index.ts` berisi kontrak tipe bersama:
+- [x] Instalasi dependensi bersama: `expo-secure-store` dan `@supabase/supabase-js`.
+- [x] Siapkan `.env` (berisi `EXPO_PUBLIC_SUPABASE_URL` & `EXPO_PUBLIC_SUPABASE_ANON_KEY`) dan pastikan `.env` tercantum di `.gitignore`. *(Keduanya menyalin nilai kunci proyek Supabase yang sama ke `.env` lokal masing-masing).*
+- [x] Buat `src/types/auth.ts` dan ekspor di `src/types/index.ts` berisi kontrak tipe bersama:
   - `AuthCredentials` (email, password)
   - `SignUpPayload` (email, password, nama/callsign opsional)
   - `AuthUser` (id, email, metadata yang relevan)
   - `AuthContextValue` (`user`, `session`, `isLoading`, `signIn`, `signUp`, `signOut`)
-- [ ] Buat kerangka awal (*stub*) `src/context/AuthContext.tsx` yang hanya mengekspor `AuthProvider` dan `useAuth()` sesuai kontrak `AuthContextValue` (mengembalikan nilai default sementara).
+- [x] Buat kerangka awal (*stub*) `src/context/AuthContext.tsx` yang hanya mengekspor `AuthProvider` dan `useAuth()` sesuai kontrak `AuthContextValue` (mengembalikan nilai default sementara).
   > **Tujuan stub ini:** Anggota B dapat langsung membangun UI login dan *Route Protection Guard* secara paralel sambil menguji skenario `user === null`, `user !== null`, dan `isLoading === true` tanpa harus menunggu Anggota A selesai menghubungkan Supabase.
 
 ---
