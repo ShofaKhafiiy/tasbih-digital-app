@@ -98,10 +98,47 @@ Dokumen ini adalah peta kerja bersama untuk tim (2 orang) agar kode **mudah dipa
 
 ---
 
-## 4. Checklist Sebelum Commit
+## 4. Standar Kode Level Atomik
 
-- [ ] `npx tsc --noEmit` lulus tanpa error.
-- [ ] Tidak ada `fetch()` atau `AsyncStorage` langsung di dalam `src/app/` maupun `src/components/`.
-- [ ] Semua tipe data baru diletakkan di `src/types/` (bukan tersebar di banyak file).
+Aturan ini wajib dipatuhi pada tingkat file, fungsi, dan baris kode:
+
+1. **Larangan *Hardcoded Config & Magic Numbers***
+   - Kunci `AsyncStorage`, batas angka (`TARGET_MIN`, `TARGET_MAX`, `MAX_SAVED_SESSIONS`), durasi timer/debounce, URL API, kota default, dan konfigurasi notifikasi **wajib** diletakkan di `src/constants/config.ts` (`STORAGE_KEYS`, `SESSION_CONFIG`, `PRAYER_CONFIG`).
+   - Dilarang menulis ulang angka batas atau URL API secara literal di dalam screen, komponen, hook, atau service.
+
+2. **Standar Styling Modular**
+   - Selalu gunakan token desain dari `src/constants/` (`colors`, `spacing`, `borderRadius`, `fontFamily`, `fontSize`, `lineHeight`, `componentSizes`, `absoluteFill`) dan `useAppStyles()` dari `src/styles/`.
+   - Style komponen baru **wajib** ditambahkan ke file modul fitur yang sesuai di `src/styles/components/<fitur>.ts` (`home.ts`, `tasbih.ts`, `navigation.ts`, `screens.ts`) lalu digabungkan di `src/styles/components.ts` — jangan menumpuk ratusan baris dalam satu file.
+
+3. **Standar JSDoc Wajib**
+   - Setiap file `.ts` dan `.tsx` di dalam `src/` **wajib** memiliki header JSDoc di baris teratas:
+     ```ts
+     /**
+      * @file Ringkasan singkat peran file ini.
+      * @layer <NamaLayer>
+      */
+     ```
+   - Setiap fungsi, komponen, hook, tipe, dan konstanta yang di-`export` wajib diberi JSDoc ringkas (tambahkan `@param`, `@returns`, dan `@throws` bila relevan).
+
+4. **Defensive Programming & Sanitasi Data**
+   - Seluruh operasi baca/tulis `AsyncStorage` **wajib** melewati `getStorageJson` dan `setStorageJson` di `src/services/storageService.ts` disertai fungsi `sanitize()` agar data lama atau korup tidak menyebabkan crash.
+   - Data dari API eksternal wajib divalidasi (status HTTP, keberadaan field, dan format waktu) sebelum dipakai atau disimpan ke state.
+
+5. **Verifikasi Wajib Sebelum Selesai**
+   - Kedua pemeriksaan harus lolos dengan **0 error**:
+     - `npx tsc --noEmit`
+     - `npm run lint` (`expo lint`)
+
+---
+
+## 5. Checklist Sebelum Commit
+
+- [ ] `npx tsc --noEmit` lulus (0 error).
+- [ ] `npm run lint` (`expo lint`) lulus (0 error).
+- [ ] Tidak ada `fetch()`, `AsyncStorage`, atau `expo-notifications` langsung di dalam `src/app/` maupun `src/components/`.
+- [ ] Seluruh akses `AsyncStorage` memakai `src/services/storageService.ts` + fungsi `sanitize`.
+- [ ] Tidak ada nilai konfigurasi / *magic number* yang di-*hardcode* di luar `src/constants/config.ts`.
+- [ ] Semua tipe data baru diletakkan di `src/types/` (tanpa `any`).
 - [ ] Tidak ada `catch` kosong tanpa log `[NamaModul.namaFungsi]`.
+- [ ] Setiap file baru/diubah di `src/` memiliki JSDoc `@file` + `@layer` serta JSDoc pada simbol yang diekspor.
 - [ ] Tidak mengubah/memindahkan nama file rute di `src/app/` secara sembarangan (Expo Router bergantung pada nama file).
